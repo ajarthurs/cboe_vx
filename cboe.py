@@ -179,6 +179,12 @@ def get_vx_expiration_date(monthyear):
     if(not(is_business_day(third_friday_of_mp1) and is_business_day(expdate))):
         expdate = expdate - bday_us
 
+    # Make it timezone-aware.
+    if(expdate.tzinfo is None):
+        expdate = expdate.tz_localize('UTC')
+    else:
+        expdate = expdate.tz_convert('UTC').normalize()
+
     logger.debug('Contract {} expires on {:%Y-%m-%d}.'.format(contract_name, expdate))
     return expdate
 #END: get_vx_expiration_date
