@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+"""Read and process futures data from CBOE."""
+
 import numpy as np
 import pandas as pd
 #from pandas.tseries.holiday import USFederalHolidayCalendar,AbstractHolidayCalendar
