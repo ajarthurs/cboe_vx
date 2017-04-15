@@ -41,9 +41,93 @@ cboe_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_update_t
 num_active_vx_contracts = 8
 
 def fetch_vx_contracts(period):
-    """Return a dataframe of VX contracts.
+    """
+    Retrieve VX contracts from CBOE that traded over a given timeframe.
 
-    period -- target timeframe.
+    Parameters
+    ----------
+    period : pd.DatetimeIndex
+        Target timeframe.
+
+    Returns
+    -------
+    pd.DataFrame
+        VX contracts concatenated together.
+
+    Examples
+    --------
+    >>> period = pd.date_range(
+            start = datetime(2016,1,15),
+            end   = datetime(2017,1,15),
+            freq  = cboe.bday_us)
+    >>> vx_df = cboe.fetch_vx_contracts(period)
+    >>> vx_df[['Futures', 'Expiration Date', 'Settle']]
+                                  Futures            Expiration Date  Settle
+    Trade Date
+    2016-01-15 00:00:00+00:00  G (Feb 16)  2016-02-17 00:00:00+00:00  24.350
+    2016-01-15 00:00:00+00:00  H (Mar 16)  2016-03-16 00:00:00+00:00  23.650
+    2016-01-15 00:00:00+00:00  J (Apr 16)  2016-04-20 00:00:00+00:00  23.350
+    2016-01-15 00:00:00+00:00  K (May 16)  2016-05-18 00:00:00+00:00  23.075
+    2016-01-15 00:00:00+00:00  M (Jun 16)  2016-06-15 00:00:00+00:00  23.025
+    2016-01-15 00:00:00+00:00  N (Jul 16)  2016-07-20 00:00:00+00:00  23.125
+    2016-01-15 00:00:00+00:00  Q (Aug 16)  2016-08-17 00:00:00+00:00  22.975
+    2016-01-15 00:00:00+00:00  U (Sep 16)  2016-09-21 00:00:00+00:00  23.200
+    2016-01-19 00:00:00+00:00  G (Feb 16)  2016-02-17 00:00:00+00:00  24.025
+    2016-01-19 00:00:00+00:00  H (Mar 16)  2016-03-16 00:00:00+00:00  23.400
+    2016-01-19 00:00:00+00:00  J (Apr 16)  2016-04-20 00:00:00+00:00  23.125
+    2016-01-19 00:00:00+00:00  K (May 16)  2016-05-18 00:00:00+00:00  22.950
+    2016-01-19 00:00:00+00:00  M (Jun 16)  2016-06-15 00:00:00+00:00  22.825
+    2016-01-19 00:00:00+00:00  N (Jul 16)  2016-07-20 00:00:00+00:00  22.950
+    2016-01-19 00:00:00+00:00  Q (Aug 16)  2016-08-17 00:00:00+00:00  22.825
+    2016-01-19 00:00:00+00:00  U (Sep 16)  2016-09-21 00:00:00+00:00  23.150
+    2016-01-20 00:00:00+00:00  G (Feb 16)  2016-02-17 00:00:00+00:00  24.725
+    2016-01-20 00:00:00+00:00  H (Mar 16)  2016-03-16 00:00:00+00:00  23.925
+    2016-01-20 00:00:00+00:00  J (Apr 16)  2016-04-20 00:00:00+00:00  23.575
+    2016-01-20 00:00:00+00:00  K (May 16)  2016-05-18 00:00:00+00:00  23.225
+    2016-01-20 00:00:00+00:00  M (Jun 16)  2016-06-15 00:00:00+00:00  23.175
+    2016-01-20 00:00:00+00:00  N (Jul 16)  2016-07-20 00:00:00+00:00  23.200
+    2016-01-20 00:00:00+00:00  Q (Aug 16)  2016-08-17 00:00:00+00:00  23.125
+    2016-01-20 00:00:00+00:00  U (Sep 16)  2016-09-21 00:00:00+00:00  23.300
+    2016-01-21 00:00:00+00:00  G (Feb 16)  2016-02-17 00:00:00+00:00  25.075
+    2016-01-21 00:00:00+00:00  H (Mar 16)  2016-03-16 00:00:00+00:00  24.075
+    2016-01-21 00:00:00+00:00  J (Apr 16)  2016-04-20 00:00:00+00:00  23.675
+    2016-01-21 00:00:00+00:00  K (May 16)  2016-05-18 00:00:00+00:00  23.325
+    2016-01-21 00:00:00+00:00  M (Jun 16)  2016-06-15 00:00:00+00:00  23.225
+    2016-01-21 00:00:00+00:00  N (Jul 16)  2016-07-20 00:00:00+00:00  23.300
+    ...                               ...                        ...     ...
+    2017-01-10 00:00:00+00:00  N (Jul 17)  2017-07-19 00:00:00+00:00  18.575
+    2017-01-10 00:00:00+00:00  Q (Aug 17)  2017-08-16 00:00:00+00:00  18.750
+    2017-01-10 00:00:00+00:00  U (Sep 17)  2017-09-20 00:00:00+00:00  19.175
+    2017-01-11 00:00:00+00:00  F (Jan 17)  2017-01-18 00:00:00+00:00  12.525
+    2017-01-11 00:00:00+00:00  G (Feb 17)  2017-02-15 00:00:00+00:00  14.225
+    2017-01-11 00:00:00+00:00  H (Mar 17)  2017-03-22 00:00:00+00:00  15.625
+    2017-01-11 00:00:00+00:00  J (Apr 17)  2017-04-19 00:00:00+00:00  16.725
+    2017-01-11 00:00:00+00:00  K (May 17)  2017-05-17 00:00:00+00:00  17.325
+    2017-01-11 00:00:00+00:00  M (Jun 17)  2017-06-21 00:00:00+00:00  17.825
+    2017-01-11 00:00:00+00:00  N (Jul 17)  2017-07-19 00:00:00+00:00  18.425
+    2017-01-11 00:00:00+00:00  Q (Aug 17)  2017-08-16 00:00:00+00:00  18.675
+    2017-01-11 00:00:00+00:00  U (Sep 17)  2017-09-20 00:00:00+00:00  19.150
+    2017-01-12 00:00:00+00:00  F (Jan 17)  2017-01-18 00:00:00+00:00  12.475
+    2017-01-12 00:00:00+00:00  G (Feb 17)  2017-02-15 00:00:00+00:00  14.325
+    2017-01-12 00:00:00+00:00  H (Mar 17)  2017-03-22 00:00:00+00:00  15.725
+    2017-01-12 00:00:00+00:00  J (Apr 17)  2017-04-19 00:00:00+00:00  16.875
+    2017-01-12 00:00:00+00:00  K (May 17)  2017-05-17 00:00:00+00:00  17.525
+    2017-01-12 00:00:00+00:00  M (Jun 17)  2017-06-21 00:00:00+00:00  17.975
+    2017-01-12 00:00:00+00:00  N (Jul 17)  2017-07-19 00:00:00+00:00  18.625
+    2017-01-12 00:00:00+00:00  Q (Aug 17)  2017-08-16 00:00:00+00:00  18.825
+    2017-01-12 00:00:00+00:00  U (Sep 17)  2017-09-20 00:00:00+00:00  19.325
+    2017-01-13 00:00:00+00:00  F (Jan 17)  2017-01-18 00:00:00+00:00  12.175
+    2017-01-13 00:00:00+00:00  G (Feb 17)  2017-02-15 00:00:00+00:00  14.225
+    2017-01-13 00:00:00+00:00  H (Mar 17)  2017-03-22 00:00:00+00:00  15.725
+    2017-01-13 00:00:00+00:00  J (Apr 17)  2017-04-19 00:00:00+00:00  16.975
+    2017-01-13 00:00:00+00:00  K (May 17)  2017-05-17 00:00:00+00:00  17.650
+    2017-01-13 00:00:00+00:00  M (Jun 17)  2017-06-21 00:00:00+00:00  18.125
+    2017-01-13 00:00:00+00:00  N (Jul 17)  2017-07-19 00:00:00+00:00  18.775
+    2017-01-13 00:00:00+00:00  Q (Aug 17)  2017-08-16 00:00:00+00:00  18.975
+    2017-01-13 00:00:00+00:00  U (Sep 17)  2017-09-20 00:00:00+00:00  19.400
+
+    [2212 rows x 3 columns]
+
     """
     # Resample period into months plus future months over which active contracts expire.
     months = pd.date_range(start=period[0], end=(period[-1]+num_active_vx_contracts*MonthBegin()), freq='MS')
@@ -53,7 +137,7 @@ def fetch_vx_contracts(period):
     vx_contracts = [fetch_vx_monthly_contract(d) for d in months]
 
     # Merge homogeneous dataframes (contracts) into a single dataframe, indexed by trading day.
-    vx_contract_df               = pd.concat(vx_contracts).set_index('Trade Date', drop=False)
+    vx_contract_df = pd.concat(vx_contracts).set_index('Trade Date', drop=False)
 
     # Exclude invalid entries and entries outside the target timeframe.
     vx_contract_df = vx_contract_df.loc[period]
@@ -62,15 +146,27 @@ def fetch_vx_contracts(period):
 #END: fetch_vx_contracts
 
 def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_dir='.data'):
-    """Return historical data and expiration date from CBOE or local cache.
+    """
+    Retrieve historical data and expiration date from CBOE or local cache.
 
-    monthyear -- contract's month and year of expiration.
+    Parameters
+    ----------
+    monthyear : datetime
+        Contract's month and year of expiration.
 
-    cache -- enable cache.
+    cache : bool
+        Enable cache.
 
-    force_update -- always update cache.
+    force_update : bool
+        Always update cache.
 
-    cache_dir -- cache's base directory path.
+    cache_dir : str
+        Cache's base directory path.
+
+    Returns
+    -------
+    pd.DataFrame
+        VX contract.
     """
     contract_name = '({}){:%m/%Y}'.format(month_code[monthyear.month], monthyear)
     logger.debug('Fetching futures contract {}.'.format(contract_name))
@@ -139,13 +235,24 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
 #END: fetch_vx_monthly_contract
 
 def is_cboe_cache_current(contract, expdate, cache_path):
-    """Test whether or not the contract's cache is up-to-date.
+    """
+    Test whether or not the contract's cache is up-to-date.
 
-    contract -- contract dataframe.
+    Parameters
+    ----------
+    contract : pd.DataFrame
+        Contract dataframe.
 
-    expdate -- contract's expiration date.
+    expdate : datetime
+        Contract's expiration date.
 
-    cache_path -- file path to contract's cache.
+    cache_path : str
+        File path to contract's cache.
+
+    Returns
+    -------
+    bool
+        Contract's cache is up-to-date.
     """
     is_current = True
     try:
@@ -162,9 +269,18 @@ def is_cboe_cache_current(contract, expdate, cache_path):
 #END: is_cache_current
 
 def get_vx_expiration_date(monthyear):
-    """Return the expiration date of a given VX contract.
+    """
+    Return the expiration date of a given VX contract.
 
-    monthyear -- contract's month and year of expiration.
+    Parameters
+    ----------
+    monthyear : datetime
+        Contract's month and year of expiration.
+
+    Returns
+    -------
+    datetime
+        Contract's expiration date.
     """
     contract_name = '({}){:%m/%Y}'.format(month_code[monthyear.month], monthyear)
 
@@ -192,19 +308,38 @@ def get_vx_expiration_date(monthyear):
 #END: get_vx_expiration_date
 
 def is_business_day(date):
-    """Test if date is a business day.
+    """
+    Test if date is a business day.
 
-    date -- date of interest.
+    Parameters
+    ----------
+    date : datetime
+        Date of interest.
+
+    Returns
+    -------
+    bool
+        Date is a business day.
     """
     return(len(pd.date_range(start=date, end=date, freq=bday_us)) > 0)
 #END: is_business_day
 
 def count_business_days(start, end):
-    """Count the number of business days between two dates.
+    """
+    Count the number of business days between two dates.
 
-    start -- first date.
+    Parameters
+    ----------
+    start : datetime
+        First date.
 
-    end -- second date.
+    end : datetime
+        Second date.
+
+    Returns
+    -------
+    int
+        Number of business days from start (inclusive) to end (exclusive).
     """
     mask          = pd.notnull(start) & pd.notnull(end)
     start         = start.values.astype('datetime64[D]')[mask]
@@ -217,6 +352,8 @@ def count_business_days(start, end):
 #END: count_business_days
 
 def test_plot():
+    """Test unit that plots STCMVF and VIX over time."""
+
     logger.setLevel(logging.DEBUG)
     fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fh = logging.FileHandler('cboe.test_plot.log', 'w')
