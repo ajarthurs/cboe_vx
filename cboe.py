@@ -38,7 +38,7 @@ cboe_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_update_t
         tz_localize('America/Chicago').tz_convert('UTC')
 
 # References to CBOE's daily settlement futures data.
-cboe_current_vx_base_url = 'http://www.cfe.cboe.com/data/DailyVXFuturesEODValues'
+cboe_current_base_url = 'http://cfe.cboe.com/market-data'
 
 # Other CBOE information.
 num_active_vx_contracts = 8
@@ -250,11 +250,11 @@ def fetch_vx_daily_settlement():
        ...
     """
     try:
-        vx_eod_values = pd.read_csv('{}/DownloadFS.aspx'.format(cboe_current_vx_base_url),
+        vx_eod_values = pd.read_csv('{}/futures-settlements'.format(cboe_current_base_url),
                 header=0, names=['Symbol', 'SettlementPrice'])
     except: # fallback to HTML table
         try:
-            cboe_tables = pd.read_html('{}/default.aspx'.format(cboe_current_vx_base_url),
+            cboe_tables = pd.read_html('{}/vx-futures-daily-settlement-prices'.format(cboe_current_base_url),
                     match='Settlement Price', header=0)
             vx_eod_values = pd.DataFrame()
             vx_eod_values['Symbol']          = cboe_tables[0]['Symbol']
