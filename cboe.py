@@ -318,6 +318,7 @@ def fetch_vx_daily_settlement():
     logger.debug('back_month_expdate  = ' + str(back_month_expdate ))
     logger.debug('front_month_price   = ' + str(front_month_price  ))
     logger.debug('back_month_price    = ' + str(back_month_price   ))
+    return(monthly_vx_eod_values)
 #END: fetch_vx_daily_settlement
 
 def is_cboe_cache_current(contract, expdate, cache_path):
