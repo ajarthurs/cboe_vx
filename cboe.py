@@ -250,16 +250,16 @@ def fetch_vx_daily_settlement():
     --------
     >>> ds = cboe.fetch_vx_daily_settlement()
     >>> ds
-               Symbol  SettlementPrice
-    0   VX 04/19/2017           16.325
-    4   VX 05/17/2017           15.225
-    7   VX 06/21/2017           15.275
-    8   VX 07/19/2017           15.825
-    9   VX 08/16/2017           16.100
-    10  VX 09/20/2017           16.750
-    11  VX 10/18/2017           17.075
-    12  VX 11/15/2017           17.300
-    13  VX 12/20/2017           17.275
+               Symbol  SettlementPrice           Expiration Date
+    0   VX 04/19/2017           16.325 2017-04-19 00:00:00+00:00
+    4   VX 05/17/2017           15.225 2017-05-17 00:00:00+00:00
+    7   VX 06/21/2017           15.275 2017-06-21 00:00:00+00:00
+    8   VX 07/19/2017           15.825 2017-07-19 00:00:00+00:00
+    9   VX 08/16/2017           16.100 2017-08-16 00:00:00+00:00
+    10  VX 09/20/2017           16.750 2017-09-20 00:00:00+00:00
+    11  VX 10/18/2017           17.075 2017-10-18 00:00:00+00:00
+    12  VX 11/15/2017           17.300 2017-11-15 00:00:00+00:00
+    13  VX 12/20/2017           17.275 2017-12-20 00:00:00+00:00
 
     """
     # CBOE's Format:
@@ -301,20 +301,31 @@ def fetch_vx_daily_settlement():
     except:
         logger.exception('Failed to find monthly contract settlement data.')
         raise
+
+    logger.debug('type(monthly_vx_eod_values) = {}'.format(type(monthly_vx_eod_values)))
+    logger.debug('monthly_vx_eod_values =\n{}'.format(monthly_vx_eod_values))
+
     try:
-        front_month_expdate    = pd.to_datetime(
-                p_monthly_expdate.match(front_month_eod_value['Symbol']).group(1),
-                format='%m/%d/%Y').date()
-        back_month_expdate     = pd.to_datetime(
-                p_monthly_expdate.match(back_month_eod_value['Symbol']).group(1),
-                format='%m/%d/%Y').date()
+        monthly_vx_eod_values['Expiration Date'] = [
+                pd.to_datetime(
+                    p_monthly_expdate.match(symbol).group(1),
+                    format='%m/%d/%Y'
+                    ).tz_localize('UTC')
+                for symbol in monthly_vx_eod_values['Symbol']
+                ]
+        front_month_eod_value = monthly_vx_eod_values.iloc[0]
+        back_month_eod_value  = monthly_vx_eod_values.iloc[1]
     except:
         logger.exception('Failed to read monthly contract expiration dates.')
         raise
-    front_month_price = front_month_eod_value['SettlementPrice']
-    back_month_price  = back_month_eod_value['SettlementPrice']
 
-    logger.debug('monthly_vx_eod_values =\n' + str(monthly_vx_eod_values))
+    logger.debug('monthly_vx_eod_values =\n{}'.format(monthly_vx_eod_values))
+
+    front_month_expdate = front_month_eod_value['Expiration Date']
+    back_month_expdate  = back_month_eod_value['Expiration Date']
+    front_month_price   = front_month_eod_value['SettlementPrice']
+    back_month_price    = back_month_eod_value['SettlementPrice']
+
     logger.debug('front_month_expdate = ' + str(front_month_expdate))
     logger.debug('back_month_expdate  = ' + str(back_month_expdate ))
     logger.debug('front_month_price   = ' + str(front_month_price  ))
