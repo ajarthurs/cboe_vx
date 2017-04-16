@@ -37,6 +37,9 @@ cboe_update_time_str = '10:00' # Chicago time
 cboe_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_update_time_str)).\
         tz_localize('America/Chicago').tz_convert('UTC')
 
+# References to CBOE's daily settlement futures data.
+cboe_current_vx_base_url = 'http://www.cfe.cboe.com/data/DailyVXFuturesEODValues'
+
 # Other CBOE information.
 num_active_vx_contracts = 8
 
@@ -233,6 +236,65 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
     logger.debug('vx_contract =\n{}'.format(vx_contract))
     return(vx_contract)
 #END: fetch_vx_monthly_contract
+
+def fetch_vx_daily_settlement():
+    """
+    Read today's settlement values of the VIX futures from CBOE.
+    Format:
+       Symbol         SettlementPrice
+       VX MM/DD/YYYY  *.***               <-- Front month
+       VX** ExpDate2  *.***               <-- Weekly 1
+       VX** ExpDate3  *.***               <-- Weekly 2
+       VX** ExpDate4  *.***               <-- Weekly 3
+       VX ExpDate5    *.***               <-- Back month
+       ...
+    """
+    try:
+        vx_eod_values = pd.read_csv('{}/DownloadFS.aspx'.format(cboe_current_vx_base_url),
+                header=0, names=['Symbol', 'SettlementPrice'])
+    except: # fallback to HTML table
+        try:
+            cboe_tables = pd.read_html('{}/default.aspx'.format(cboe_current_vx_base_url),
+                    match='Settlement Price', header=0)
+            vx_eod_values = pd.DataFrame()
+            vx_eod_values['Symbol']          = cboe_tables[0]['Symbol']
+            vx_eod_values['SettlementPrice'] = cboe_tables[0]['Daily\n                                Settlement Price']
+        except:
+            logger.exception('Failed to download daily settlement values from CBOE.')
+            raise
+
+    logger.debug('vx_eod_values =\n' + str(vx_eod_values))
+
+    # Grab the front and back month expirations and settlement prices.
+    p_monthly_expdate      = re.compile('VX \s*(.*)')
+    monthly_vx_eod_values  = vx_eod_values[
+            vx_eod_values['Symbol'].map(lambda x: p_monthly_expdate.match(x) is not None)
+            ]
+    try:
+        front_month_eod_value = monthly_vx_eod_values.iloc[0]
+        back_month_eod_value  = monthly_vx_eod_values.iloc[1]
+    except:
+        logger.exception('Failed to find monthly contract settlement data.')
+        raise
+    try:
+        front_month_expdate    = pd.to_datetime(
+                p_monthly_expdate.match(front_month_eod_value['Symbol']).group(1),
+                format='%m/%d/%Y').date()
+        back_month_expdate     = pd.to_datetime(
+                p_monthly_expdate.match(back_month_eod_value['Symbol']).group(1),
+                format='%m/%d/%Y').date()
+    except:
+        logger.exception('Failed to read monthly contract expiration dates.')
+        raise
+    front_month_price = front_month_eod_value['SettlementPrice']
+    back_month_price  = back_month_eod_value['SettlementPrice']
+
+    logger.debug('monthly_vx_eod_values =\n' + str(monthly_vx_eod_values))
+    logger.debug('front_month_expdate = ' + str(front_month_expdate))
+    logger.debug('back_month_expdate  = ' + str(back_month_expdate ))
+    logger.debug('front_month_price   = ' + str(front_month_price  ))
+    logger.debug('back_month_price    = ' + str(back_month_price   ))
+#END: fetch_vx_daily_settlement
 
 def is_cboe_cache_current(contract, expdate, cache_path):
     """
