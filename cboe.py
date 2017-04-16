@@ -326,10 +326,10 @@ def fetch_vx_daily_settlement():
     front_month_price   = front_month_eod_value['SettlementPrice']
     back_month_price    = back_month_eod_value['SettlementPrice']
 
-    logger.debug('front_month_expdate = ' + str(front_month_expdate))
-    logger.debug('back_month_expdate  = ' + str(back_month_expdate ))
-    logger.debug('front_month_price   = ' + str(front_month_price  ))
-    logger.debug('back_month_price    = ' + str(back_month_price   ))
+    logger.debug('front_month_expdate = {}'.format(front_month_expdate))
+    logger.debug('back_month_expdate  = {}'.format(back_month_expdate ))
+    logger.debug('front_month_price   = {}'.format(front_month_price  ))
+    logger.debug('back_month_price    = {}'.format(back_month_price   ))
     return(monthly_vx_eod_values)
 #END: fetch_vx_daily_settlement
 
