@@ -9,6 +9,7 @@ from holiday import USMarketHolidayCalendar
 from pandas.tseries.offsets import CDay,Day,Week,MonthBegin,MonthEnd
 import pandas_datareader.data as web
 import matplotlib.pyplot as plt
+import calendar
 import re
 import pickle
 import sys
@@ -145,6 +146,25 @@ def fetch_vx_contracts(period):
     # Exclude invalid entries and entries outside the target timeframe.
     vx_contract_df = vx_contract_df.loc[period]
     vx_contract_df = vx_contract_df.dropna()
+
+    # Get the most recent business day.
+    post_date = (now - bday_us*(not is_business_day(now))).normalize()
+    if(post_date in period):
+        # Append daily settlement values of the monthly VX contracts.
+        vx_ds_df   = fetch_vx_daily_settlement()
+        current_df = pd.DataFrame([{
+            'Trade Date':      post_date,
+            'Futures':         '{} ({} {})'.format(
+                month_code[vx_ds_df.loc[i, 'Expiration Date'].month],
+                calendar.month_abbr[vx_ds_df.loc[i, 'Expiration Date'].month],
+                vx_ds_df.loc[i, 'Expiration Date'].year - cboe_base_millennium),
+            'Expiration Date': vx_ds_df.loc[i, 'Expiration Date'],
+            'Settle':          vx_ds_df.loc[i, 'SettlementPrice'],
+            'Open':np.nan,'High':np.nan,'Low':np.nan,'Close':np.nan,
+            'Change':np.nan,'Total Volume':np.nan,'EFP':np.nan,'Open Interest':np.nan}
+            for i in vx_ds_df.index])
+        current_df = current_df.set_index(current_df['Trade Date'], drop=False)
+        vx_contract_df = vx_contract_df.append(current_df)
     return(vx_contract_df)
 #END: fetch_vx_contracts
 
@@ -463,7 +483,7 @@ def test_plot():
     logger.addHandler(con)
 
     timeframe     = 2*200
-    end_date      = (now - bday_us*(1+ (now < cboe_update_time) )).normalize()
+    end_date      = (now - bday_us*(not is_business_day(now))).normalize()
     start_date    = end_date - timeframe*bday_us
     target_period = pd.date_range(start=start_date, end=end_date, freq=bday_us)
 
