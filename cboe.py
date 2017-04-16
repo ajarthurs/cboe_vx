@@ -291,9 +291,10 @@ def fetch_vx_daily_settlement():
 
     # Grab the front and back month expirations and settlement prices.
     p_monthly_expdate      = re.compile('VX \s*(.*)')
-    monthly_vx_eod_values  = vx_eod_values[
-            vx_eod_values['Symbol'].map(lambda x: p_monthly_expdate.match(x) is not None)
-            ]
+    monthly_vx_eod_values  = pd.DataFrame(
+            vx_eod_values[
+                vx_eod_values['Symbol'].apply(lambda x: p_monthly_expdate.match(x) is not None)
+            ])
     try:
         front_month_eod_value = monthly_vx_eod_values.iloc[0]
         back_month_eod_value  = monthly_vx_eod_values.iloc[1]
