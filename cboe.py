@@ -256,9 +256,10 @@ def fetch_vx_daily_settlement():
         try:
             cboe_tables = pd.read_html('{}/vx-futures-daily-settlement-prices'.format(cboe_current_base_url),
                     match='Settlement Price', header=0)
+            cboe_tables[0].columns = [re.sub('\s+', ' ', x.strip()) for x in cboe_tables[0]]
             vx_eod_values = pd.DataFrame()
             vx_eod_values['Symbol']          = cboe_tables[0]['Symbol']
-            vx_eod_values['SettlementPrice'] = cboe_tables[0]['Daily\n                                Settlement Price']
+            vx_eod_values['SettlementPrice'] = cboe_tables[0]['Daily Settlement Price']
         except:
             logger.exception('Failed to download daily settlement values from CBOE.')
             raise
