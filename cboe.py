@@ -252,6 +252,7 @@ def fetch_vx_daily_settlement():
     try:
         vx_eod_values = pd.read_csv('{}/futures-settlements'.format(cboe_current_base_url),
                 header=0, names=['Symbol', 'SettlementPrice'])
+        logger.debug('Fetched data from CSV.')
     except: # fallback to HTML table
         try:
             cboe_tables = pd.read_html('{}/vx-futures-daily-settlement-prices'.format(cboe_current_base_url),
@@ -260,6 +261,7 @@ def fetch_vx_daily_settlement():
             vx_eod_values = pd.DataFrame()
             vx_eod_values['Symbol']          = cboe_tables[0]['Symbol']
             vx_eod_values['SettlementPrice'] = cboe_tables[0]['Daily Settlement Price']
+            logger.debug('Fetched data from HTML.')
         except:
             logger.exception('Failed to download daily settlement values from CBOE.')
             raise
