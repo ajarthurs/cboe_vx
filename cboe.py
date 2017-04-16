@@ -239,16 +239,37 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
 
 def fetch_vx_daily_settlement():
     """
-    Read today's settlement values of the VIX futures from CBOE.
-    Format:
-       Symbol         SettlementPrice
-       VX MM/DD/YYYY  *.***               <-- Front month
-       VX** ExpDate2  *.***               <-- Weekly 1
-       VX** ExpDate3  *.***               <-- Weekly 2
-       VX** ExpDate4  *.***               <-- Weekly 3
-       VX ExpDate5    *.***               <-- Back month
-       ...
+    Read today's monthly VX settlement values from CBOE.
+
+    Returns
+    -------
+    pd.DataFrame
+        Daily settlement values of monthly VX contracts.
+
+    Examples
+    --------
+    >>> ds = cboe.fetch_vx_daily_settlement()
+    >>> ds
+               Symbol  SettlementPrice
+    0   VX 04/19/2017           16.325
+    4   VX 05/17/2017           15.225
+    7   VX 06/21/2017           15.275
+    8   VX 07/19/2017           15.825
+    9   VX 08/16/2017           16.100
+    10  VX 09/20/2017           16.750
+    11  VX 10/18/2017           17.075
+    12  VX 11/15/2017           17.300
+    13  VX 12/20/2017           17.275
+
     """
+    # CBOE's Format:
+    #    Symbol         SettlementPrice
+    #    VX MM/DD/YYYY  *.***               <-- Front month
+    #    VX** ExpDate2  *.***               <-- Weekly 1
+    #    VX** ExpDate3  *.***               <-- Weekly 2
+    #    VX** ExpDate4  *.***               <-- Weekly 3
+    #    VX ExpDate5    *.***               <-- Back month
+    #    ...
     try:
         vx_eod_values = pd.read_csv('{}/futures-settlements'.format(cboe_current_base_url),
                 header=0, names=['Symbol', 'SettlementPrice'])
