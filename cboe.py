@@ -44,7 +44,7 @@ cboe_current_base_url = 'http://cfe.cboe.com/market-data'
 # Other CBOE information.
 num_active_vx_contracts = 8
 
-def fetch_vx_contracts(period):
+def fetch_vx_contracts(period, force_update=False):
     """
     Retrieve VX contracts from CBOE that traded over a given timeframe.
 
@@ -52,6 +52,9 @@ def fetch_vx_contracts(period):
     ----------
     period : pd.DatetimeIndex
         Target timeframe.
+
+    force_update : bool
+        Always update cache.
 
     Returns
     -------
@@ -138,7 +141,7 @@ def fetch_vx_contracts(period):
     logger.debug('months =\n{}'.format(months))
 
     # Load VX contracts.
-    vx_contracts = [fetch_vx_monthly_contract(d) for d in months]
+    vx_contracts = [fetch_vx_monthly_contract(d, force_update=force_update) for d in months]
 
     # Merge homogeneous dataframes (contracts) into a single dataframe, indexed by trading day.
     vx_contract_df = pd.concat(vx_contracts).set_index('Trade Date', drop=False)
