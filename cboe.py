@@ -34,8 +34,13 @@ month_code = ['', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
 #             0    1    2    3    4    5    6    7    8    9   10   11   12
 
 # Time when CBOE updates historical futures data.
-cboe_update_time_str = '10:00' # Chicago time
-cboe_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_update_time_str)).\
+cboe_historical_update_time_str = '10:00' # Chicago time
+cboe_historical_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_historical_update_time_str)).\
+        tz_localize('America/Chicago').tz_convert('UTC')
+
+# Time when CBOE updates daily settlement values.
+cboe_daily_update_time_str = '15:30' # Chicago time
+cboe_daily_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_daily_update_time_str)).\
         tz_localize('America/Chicago').tz_convert('UTC')
 
 # References to CBOE's daily settlement futures data.
@@ -152,6 +157,10 @@ def fetch_vx_contracts(period, force_update=False):
 
     # Get the most recent business day.
     post_date = (now - bday_us*(not is_business_day(now))).normalize()
+    if(now < cboe_daily_update_time):
+        post_date = post_date - bday_us
+    logger.debug('post_date = {:%Y-%m-%d}'.format(post_date))
+
     if(post_date in period):
         # Append daily settlement values of the monthly VX contracts.
         vx_ds_df   = fetch_vx_daily_settlement()
@@ -379,7 +388,8 @@ def is_cboe_cache_current(contract, expdate, cache_path):
     is_current = True
     try:
         # Check if contract is expired or cache is up-to-date.
-        current_datetime = cboe_update_time if(now >= cboe_update_time) else (cboe_update_time - bday_us)
+        current_datetime = cboe_historical_update_time if(now >= cboe_historical_update_time) else\
+                (cboe_historical_update_time - bday_us)
         cache_last_date  = contract['Trade Date'].iloc[-1]
         if(cache_last_date < (expdate-bday_us) and current_datetime > (cache_last_date+2*bday_us)):
             logger.debug('Cache ({}) is out-of-date.'.format(cache_path))
