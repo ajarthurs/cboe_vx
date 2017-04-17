@@ -184,7 +184,8 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
     Parameters
     ----------
     monthyear : datetime
-        Contract's month and year of expiration.
+        Contract's month and year of expiration. It is strongly recommended
+        that the given day is the 1st of the month (see pandas.tseries.offsets.MonthBegin()).
 
     cache : bool
         Enable cache.
@@ -404,7 +405,8 @@ def get_vx_expiration_date(monthyear):
     Parameters
     ----------
     monthyear : datetime
-        Contract's month and year of expiration.
+        Contract's month and year of expiration. It is strongly recommended
+        that the given day is the 1st of the month (see pandas.tseries.offsets.MonthBegin()).
 
     Returns
     -------
