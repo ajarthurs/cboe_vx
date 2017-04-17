@@ -73,6 +73,7 @@ def fetch_vx_contracts(period, force_update=False):
     >>> vx_df[['Futures', 'Expiration Date', 'Settle']]
                                   Futures            Expiration Date  Settle
     Trade Date
+    2016-01-15 00:00:00+00:00  F (Jan 16)  2016-01-20 00:00:00+00:00  26.475
     2016-01-15 00:00:00+00:00  G (Feb 16)  2016-02-17 00:00:00+00:00  24.350
     2016-01-15 00:00:00+00:00  H (Mar 16)  2016-03-16 00:00:00+00:00  23.650
     2016-01-15 00:00:00+00:00  J (Apr 16)  2016-04-20 00:00:00+00:00  23.350
@@ -81,6 +82,7 @@ def fetch_vx_contracts(period, force_update=False):
     2016-01-15 00:00:00+00:00  N (Jul 16)  2016-07-20 00:00:00+00:00  23.125
     2016-01-15 00:00:00+00:00  Q (Aug 16)  2016-08-17 00:00:00+00:00  22.975
     2016-01-15 00:00:00+00:00  U (Sep 16)  2016-09-21 00:00:00+00:00  23.200
+    2016-01-19 00:00:00+00:00  F (Jan 16)  2016-01-20 00:00:00+00:00  25.850
     2016-01-19 00:00:00+00:00  G (Feb 16)  2016-02-17 00:00:00+00:00  24.025
     2016-01-19 00:00:00+00:00  H (Mar 16)  2016-03-16 00:00:00+00:00  23.400
     2016-01-19 00:00:00+00:00  J (Apr 16)  2016-04-20 00:00:00+00:00  23.125
@@ -101,8 +103,6 @@ def fetch_vx_contracts(period, force_update=False):
     2016-01-21 00:00:00+00:00  H (Mar 16)  2016-03-16 00:00:00+00:00  24.075
     2016-01-21 00:00:00+00:00  J (Apr 16)  2016-04-20 00:00:00+00:00  23.675
     2016-01-21 00:00:00+00:00  K (May 16)  2016-05-18 00:00:00+00:00  23.325
-    2016-01-21 00:00:00+00:00  M (Jun 16)  2016-06-15 00:00:00+00:00  23.225
-    2016-01-21 00:00:00+00:00  N (Jul 16)  2016-07-20 00:00:00+00:00  23.300
     ...                               ...                        ...     ...
     2017-01-10 00:00:00+00:00  N (Jul 17)  2017-07-19 00:00:00+00:00  18.575
     2017-01-10 00:00:00+00:00  Q (Aug 17)  2017-08-16 00:00:00+00:00  18.750
@@ -135,11 +135,12 @@ def fetch_vx_contracts(period, force_update=False):
     2017-01-13 00:00:00+00:00  Q (Aug 17)  2017-08-16 00:00:00+00:00  18.975
     2017-01-13 00:00:00+00:00  U (Sep 17)  2017-09-20 00:00:00+00:00  19.400
 
-    [2212 rows x 3 columns]
+    [2214 rows x 3 columns]
 
     """
     # Resample period into months plus future months over which active contracts expire.
-    months = pd.date_range(start=period[0], end=(period[-1]+num_active_vx_contracts*MonthBegin()), freq='MS')
+    months = pd.date_range(start=(period[0]-MonthBegin()),
+            end=(period[-1]+num_active_vx_contracts*MonthBegin()), freq='MS')
     logger.debug('months =\n{}'.format(months))
 
     # Load VX contracts.
@@ -147,6 +148,7 @@ def fetch_vx_contracts(period, force_update=False):
 
     # Merge homogeneous dataframes (contracts) into a single dataframe, indexed by trading day.
     vx_contract_df = pd.concat(vx_contracts).set_index('Trade Date', drop=False)
+    logger.debug('vx_contract_df (unfiltered)=\n{}'.format(vx_contract_df))
 
     # Exclude invalid entries and entries outside the target timeframe.
     vx_contract_df = vx_contract_df.loc[period]
@@ -509,26 +511,26 @@ def build_continuous_vx_dataframe(vx_contract_df):
     >>> vx_continuous_df[['Front-Month Settle', 'Back-Month Settle', 'STCMVF']]
                                Front-Month Settle  Back-Month Settle     STCMVF
     Trade Date
-    2017-01-17 00:00:00+00:00              14.175             15.725  14.887162
-    2017-01-18 00:00:00+00:00              14.175             15.625  14.880405
-    2017-01-19 00:00:00+00:00              14.225             15.575  14.918243
-    2017-01-20 00:00:00+00:00              13.825             15.225  14.581757
-    2017-01-23 00:00:00+00:00              13.575             14.975  14.369595
-    2017-01-24 00:00:00+00:00              13.025             14.375  13.827703
-    2017-01-25 00:00:00+00:00              12.725             14.175  13.626351
-    2017-01-26 00:00:00+00:00              12.675             14.125  13.615541
-    2017-01-27 00:00:00+00:00              12.525             14.125  13.606081
-    2017-01-30 00:00:00+00:00              12.875             14.325  13.893919
-    2017-01-31 00:00:00+00:00              12.925             14.325  13.946622
-    2017-02-01 00:00:00+00:00              12.675             13.975  13.658784
-    2017-02-02 00:00:00+00:00              12.925             14.175  13.904730
-    2017-02-03 00:00:00+00:00              12.475             13.925  13.650676
-    2017-02-06 00:00:00+00:00              12.475             13.975  13.731757
-    2017-02-07 00:00:00+00:00              12.575             13.975  13.785811
-    2017-02-08 00:00:00+00:00              12.575             13.975  13.823649
-    2017-02-09 00:00:00+00:00              12.025             13.675  13.541216
-    2017-02-10 00:00:00+00:00              11.725             13.375  13.285811
-    2017-02-13 00:00:00+00:00              11.425             13.075  13.030405
+    2017-01-17 00:00:00+00:00              12.175             14.175  14.175000
+    2017-01-18 00:00:00+00:00              14.175             15.625  14.247500
+    2017-01-19 00:00:00+00:00              14.225             15.575  14.360000
+    2017-01-20 00:00:00+00:00              13.825             15.225  14.035000
+    2017-01-23 00:00:00+00:00              13.575             14.975  13.855000
+    2017-01-24 00:00:00+00:00              13.025             14.375  13.362500
+    2017-01-25 00:00:00+00:00              12.725             14.175  13.160000
+    2017-01-26 00:00:00+00:00              12.675             14.125  13.182500
+    2017-01-27 00:00:00+00:00              12.525             14.125  13.165000
+    2017-01-30 00:00:00+00:00              12.875             14.325  13.527500
+    2017-01-31 00:00:00+00:00              12.925             14.325  13.625000
+    2017-02-01 00:00:00+00:00              12.675             13.975  13.390000
+    2017-02-02 00:00:00+00:00              12.925             14.175  13.675000
+    2017-02-03 00:00:00+00:00              12.475             13.925  13.417500
+    2017-02-06 00:00:00+00:00              12.475             13.975  13.525000
+    2017-02-07 00:00:00+00:00              12.575             13.975  13.625000
+    2017-02-08 00:00:00+00:00              12.575             13.975  13.695000
+    2017-02-09 00:00:00+00:00              12.025             13.675  13.427500
+    2017-02-10 00:00:00+00:00              11.725             13.375  13.210000
+    2017-02-13 00:00:00+00:00              11.425             13.075  12.992500
     2017-02-14 00:00:00+00:00              11.175             12.300  12.300000
     2017-02-15 00:00:00+00:00              12.875             14.025  12.922917
     2017-02-16 00:00:00+00:00              12.975             14.175  13.075000
@@ -587,12 +589,8 @@ def build_continuous_vx_dataframe(vx_contract_df):
     if(timeframe[0] < vx_expdate_s[0]):
         # Prepend list of expiration dates with prior expiration date within the given timeframe.
         prior_monthyear = vx_expdate_s[0] - MonthEnd() - MonthBegin()
-        prior_expdates  = [get_vx_expiration_date(prior_monthyear)]
-        if(timeframe[0] < prior_expdates[0]):
-            # Prepend list of expiration dates with prior expiration date within the given timeframe.
-            prior_monthyear = prior_expdates[0] - MonthEnd() - MonthBegin()
-            prior_expdates  = prior_expdates + [get_vx_expiration_date(prior_monthyear)]
-        vx_expdate_s    = pd.concat([pd.Series(prior_expdates), vx_expdate_s])
+        prior_expdate_s = pd.Series(get_vx_expiration_date(prior_monthyear))
+        vx_expdate_s    = pd.concat([prior_expdate_s, vx_expdate_s])
 
     # Create continuous prior-month expiration date series, indexed by trading day.
     vx_pm_s      = pd.Series(
