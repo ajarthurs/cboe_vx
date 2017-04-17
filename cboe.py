@@ -645,7 +645,7 @@ def test_plot():
 
     # Debug-level logging.
     logger.setLevel(logging.DEBUG)
-    fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fmt = logging.Formatter('%(asctime)s - %(name)s:%(funcName)s - %(levelname)s - %(message)s')
     fh = logging.FileHandler('cboe.test_plot.log', 'w')
     fh.setFormatter(fmt)
     con = logging.StreamHandler(sys.stdout)
