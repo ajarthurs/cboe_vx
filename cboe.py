@@ -66,9 +66,9 @@ def fetch_vx_contracts(period, force_update=False):
     Examples
     --------
     >>> period = pd.date_range(
-            start = datetime(2016,1,15, tzinfo=pytz.timezone('UTC')),
-            end   = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
-            freq  = cboe.bday_us)
+    ...     start = datetime(2016,1,15, tzinfo=pytz.timezone('UTC')),
+    ...     end   = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
+    ...     freq  = cboe.bday_us)
     >>> vx_df = cboe.fetch_vx_contracts(period)
     >>> vx_df[['Futures', 'Expiration Date', 'Settle']]
                                   Futures            Expiration Date  Settle
@@ -134,7 +134,7 @@ def fetch_vx_contracts(period, force_update=False):
     2017-01-13 00:00:00+00:00  N (Jul 17)  2017-07-19 00:00:00+00:00  18.775
     2017-01-13 00:00:00+00:00  Q (Aug 17)  2017-08-16 00:00:00+00:00  18.975
     2017-01-13 00:00:00+00:00  U (Sep 17)  2017-09-20 00:00:00+00:00  19.400
-
+    <BLANKLINE>
     [2214 rows x 3 columns]
 
     """
@@ -502,9 +502,9 @@ def build_continuous_vx_dataframe(vx_contract_df):
     --------
     Calculate continuous VX data from January 15 2017 to April 14 2017.
     >>> period = pd.date_range(
-            start = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
-            end   = datetime(2017,4,14, tzinfo=pytz.timezone('UTC')),
-            freq  = cboe.bday_us)
+    ...     start = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
+    ...     end   = datetime(2017,4,14, tzinfo=pytz.timezone('UTC')),
+    ...     freq  = cboe.bday_us)
     >>> vx_contract_df = cboe.fetch_vx_contracts(period)
     >>> vx_continuous_df = cboe.build_continuous_vx_dataframe(vx_contract_df)
     >>> vx_continuous_df[['Front-Month Settle', 'Back-Month Settle', 'STCMVF']]
@@ -571,7 +571,7 @@ def build_continuous_vx_dataframe(vx_contract_df):
     2017-04-11 00:00:00+00:00              15.975             14.525  14.830263
     2017-04-12 00:00:00+00:00              16.275             14.925  15.138158
     2017-04-13 00:00:00+00:00              16.325             15.225  15.340789
-
+    <BLANKLINE>
     [62 rows x 3 columns]
 
     """
