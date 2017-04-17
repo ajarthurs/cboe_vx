@@ -500,9 +500,7 @@ def build_continuous_vx_dataframe(vx_contract_df):
     Examples
     --------
     Calculate continuous VX data from January 15 2017 to today (April 14 2017
-    at the time this code was executed). Note that the continuous timeframe
-    starts from the expiration date of the oldest contract within the given
-    time period (period).
+    at the time this code was executed).
     >>> period = pd.date_range(
             start = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
             end   = cboe.now,
@@ -512,6 +510,27 @@ def build_continuous_vx_dataframe(vx_contract_df):
     >>> vx_continuous_df[['Front-Month Settle', 'Back-Month Settle', 'STCMVF']]
                                Front-Month Settle  Back-Month Settle     STCMVF
     Trade Date
+    2017-01-17 00:00:00+00:00              14.175             15.725  14.887162
+    2017-01-18 00:00:00+00:00              14.175             15.625  14.880405
+    2017-01-19 00:00:00+00:00              14.225             15.575  14.918243
+    2017-01-20 00:00:00+00:00              13.825             15.225  14.581757
+    2017-01-23 00:00:00+00:00              13.575             14.975  14.369595
+    2017-01-24 00:00:00+00:00              13.025             14.375  13.827703
+    2017-01-25 00:00:00+00:00              12.725             14.175  13.626351
+    2017-01-26 00:00:00+00:00              12.675             14.125  13.615541
+    2017-01-27 00:00:00+00:00              12.525             14.125  13.606081
+    2017-01-30 00:00:00+00:00              12.875             14.325  13.893919
+    2017-01-31 00:00:00+00:00              12.925             14.325  13.946622
+    2017-02-01 00:00:00+00:00              12.675             13.975  13.658784
+    2017-02-02 00:00:00+00:00              12.925             14.175  13.904730
+    2017-02-03 00:00:00+00:00              12.475             13.925  13.650676
+    2017-02-06 00:00:00+00:00              12.475             13.975  13.731757
+    2017-02-07 00:00:00+00:00              12.575             13.975  13.785811
+    2017-02-08 00:00:00+00:00              12.575             13.975  13.823649
+    2017-02-09 00:00:00+00:00              12.025             13.675  13.541216
+    2017-02-10 00:00:00+00:00              11.725             13.375  13.285811
+    2017-02-13 00:00:00+00:00              11.425             13.075  13.030405
+    2017-02-14 00:00:00+00:00              11.175             12.300  12.300000
     2017-02-15 00:00:00+00:00              12.875             14.025  12.922917
     2017-02-16 00:00:00+00:00              12.975             14.175  13.075000
     2017-02-17 00:00:00+00:00              13.125             14.350  13.278125
@@ -521,8 +540,7 @@ def build_continuous_vx_dataframe(vx_contract_df):
     2017-02-24 00:00:00+00:00              13.325             15.250  13.886458
     2017-02-27 00:00:00+00:00              13.275             15.125  13.891667
     2017-02-28 00:00:00+00:00              13.525             15.325  14.200000
-    2017-03-01 00:00:00+00:00              13.275             15.075  14.025000
-    2017-03-02 00:00:00+00:00              13.275             15.025  14.077083
+    ...                                       ...                ...        ...
     2017-03-03 00:00:00+00:00              12.825             14.575  13.700000
     2017-03-06 00:00:00+00:00              12.675             14.425  13.622917
     2017-03-07 00:00:00+00:00              12.625             14.475  13.704167
@@ -554,6 +572,8 @@ def build_continuous_vx_dataframe(vx_contract_df):
     2017-04-12 00:00:00+00:00              16.275             14.925  15.138158
     2017-04-13 00:00:00+00:00              16.325             15.225  15.340789
 
+    [62 rows x 3 columns]
+
     """
     timeframe      = vx_contract_df.index.unique()
 
@@ -563,8 +583,19 @@ def build_continuous_vx_dataframe(vx_contract_df):
 
     logger.debug('vx_td_gb =\n{}'.format(vx_td_gb))
 
+    # Get list (series) of expiration dates
+    vx_expdate_s    = pd.Series(vx_ed_gb.first().index) # build from given contract dataframe
+    if(timeframe[0] < vx_expdate_s[0]):
+        # Prepend list of expiration dates with prior expiration date within the given timeframe.
+        prior_monthyear = vx_expdate_s[0] - MonthEnd() - MonthBegin()
+        prior_expdates  = [get_vx_expiration_date(prior_monthyear)]
+        if(timeframe[0] < prior_expdates[0]):
+            # Prepend list of expiration dates with prior expiration date within the given timeframe.
+            prior_monthyear = prior_expdates[0] - MonthEnd() - MonthBegin()
+            prior_expdates  = prior_expdates + [get_vx_expiration_date(prior_monthyear)]
+        vx_expdate_s    = pd.concat([pd.Series(prior_expdates), vx_expdate_s])
+
     # Create continuous prior-month expiration date series, indexed by trading day.
-    vx_expdate_s = pd.Series(vx_ed_gb.first().index) # get list (series) of expiration dates
     vx_pm_s      = pd.Series(
             [
                 vx_expdate_s[ vx_expdate_s <= d ].iloc[-1]
