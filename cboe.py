@@ -483,27 +483,78 @@ def count_business_days(start, end):
     return(result)
 #END: count_business_days
 
-def test_plot():
-    """Test unit that plots STCMVF and VIX over time."""
+def build_continuous_vx_dataframe(vx_contract_df):
+    """
+    Build dataframe of continuous VX data.
 
-    logger.setLevel(logging.DEBUG)
-    fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh = logging.FileHandler('cboe.test_plot.log', 'w')
-    fh.setFormatter(fmt)
-    con = logging.StreamHandler(sys.stdout)
-    con.setFormatter(fmt)
-    logger.addHandler(fh)
-    logger.addHandler(con)
+    Parameters
+    ----------
+    vx_contract_df : pd.DataFrame
+        Dataframe containing VX contract data (see cboe.fetch_vx_contracts).
 
-    timeframe     = 2*200
-    end_date      = (now - bday_us*(not is_business_day(now))).normalize()
-    start_date    = end_date - timeframe*bday_us
-    target_period = pd.date_range(start=start_date, end=end_date, freq=bday_us)
+    Returns
+    -------
+    pd.DataFrame
+        Continuous VX data.
 
-    logger.debug('target_period =\n{}'.format(target_period))
+    Examples
+    --------
+    Calculate continuous VX data from January 15 2017 to today (April 14 2017
+    at the time this code was executed). Note that the continuous timeframe
+    starts from the expiration date of the oldest contract within the given
+    time period (period).
+    >>> period = pd.date_range(
+            start = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
+            end   = cboe.now,
+            freq  = cboe.bday_us)
+    >>> vx_contract_df = cboe.fetch_vx_contracts(period)
+    >>> vx_continuous_df = cboe.build_continuous_vx_dataframe(vx_contract_df)
+    >>> vx_continuous_df[['Front-Month Settle', 'Back-Month Settle', 'STCMVF']]
+                               Front-Month Settle  Back-Month Settle     STCMVF
+    Trade Date
+    2017-02-15 00:00:00+00:00              12.875             14.025  12.922917
+    2017-02-16 00:00:00+00:00              12.975             14.175  13.075000
+    2017-02-17 00:00:00+00:00              13.125             14.350  13.278125
+    2017-02-21 00:00:00+00:00              13.175             14.525  13.400000
+    2017-02-22 00:00:00+00:00              13.225             14.625  13.516667
+    2017-02-23 00:00:00+00:00              13.525             15.225  13.950000
+    2017-02-24 00:00:00+00:00              13.325             15.250  13.886458
+    2017-02-27 00:00:00+00:00              13.275             15.125  13.891667
+    2017-02-28 00:00:00+00:00              13.525             15.325  14.200000
+    2017-03-01 00:00:00+00:00              13.275             15.075  14.025000
+    2017-03-02 00:00:00+00:00              13.275             15.025  14.077083
+    2017-03-03 00:00:00+00:00              12.825             14.575  13.700000
+    2017-03-06 00:00:00+00:00              12.675             14.425  13.622917
+    2017-03-07 00:00:00+00:00              12.625             14.475  13.704167
+    2017-03-08 00:00:00+00:00              12.675             14.425  13.768750
+    2017-03-09 00:00:00+00:00              12.775             14.425  13.875000
+    2017-03-10 00:00:00+00:00              12.525             14.200  13.711458
+    2017-03-13 00:00:00+00:00              12.125             13.875  13.437500
+    2017-03-14 00:00:00+00:00              12.625             14.075  13.772917
+    2017-03-15 00:00:00+00:00              12.275             13.725  13.483333
+    2017-03-16 00:00:00+00:00              11.925             13.275  13.106250
+    2017-03-17 00:00:00+00:00              11.775             13.275  13.150000
+    2017-03-20 00:00:00+00:00              11.625             13.175  13.110417
+    2017-03-21 00:00:00+00:00              12.175             13.775  13.775000
+    2017-03-22 00:00:00+00:00              13.925             14.575  13.959211
+    2017-03-23 00:00:00+00:00              14.275             14.775  14.327632
+    2017-03-24 00:00:00+00:00              13.925             14.400  14.000000
+    2017-03-27 00:00:00+00:00              13.575             14.075  13.680263
+    2017-03-28 00:00:00+00:00              12.925             13.550  13.089474
+    2017-03-29 00:00:00+00:00              12.925             13.525  13.114474
+    2017-03-30 00:00:00+00:00              12.825             13.375  13.027632
+    2017-03-31 00:00:00+00:00              13.275             13.575  13.401316
+    2017-04-03 00:00:00+00:00              13.475             13.575  13.522368
+    2017-04-04 00:00:00+00:00              13.225             13.375  13.303947
+    2017-04-05 00:00:00+00:00              13.875             13.875  13.875000
+    2017-04-06 00:00:00+00:00              13.575             13.525  13.543421
+    2017-04-07 00:00:00+00:00              14.025             13.875  13.922368
+    2017-04-10 00:00:00+00:00              15.025             14.325  14.509211
+    2017-04-11 00:00:00+00:00              15.975             14.525  14.830263
+    2017-04-12 00:00:00+00:00              16.275             14.925  15.138158
+    2017-04-13 00:00:00+00:00              16.325             15.225  15.340789
 
-    # Load VX contracts.
-    vx_contract_df = fetch_vx_contracts(target_period)
+    """
     timeframe      = vx_contract_df.index.unique()
 
     # Create GroupBy objects.
@@ -534,35 +585,65 @@ def test_plot():
     logger.debug('vx_fm_df =\n{}'.format(vx_fm_df))
 
     # Create custom dataframes indexed by trading day.
-    vx_st_df = pd.DataFrame(index=vx_pm_s.index) # short-term (front/back-month weighted)
+    vx_continuous_df = pd.DataFrame(index=vx_pm_s.index) # short-term (front/back-month weighted)
     logger.debug('vx_pm_s.index =\n{}'.format(vx_pm_s.index))
 
     # Calculate short-term columns.
-    vx_st_df['Prior-Month Expiration Date'] = vx_pm_s
-    vx_st_df['Front-Month Settle']          = vx_fm_df['Settle']
-    vx_st_df['Front-Month Expiration Date'] = vx_fm_df['Expiration Date']
-    vx_st_df['Back-Month Settle']           = vx_bm_df['Settle']
-    vx_st_df['Back-Month Expiration Date']  = vx_bm_df['Expiration Date']
-    vx_st_df['Roll Period']                 = count_business_days(
-            vx_st_df['Prior-Month Expiration Date'], vx_st_df['Front-Month Expiration Date'])
-    vx_st_df['Days Till Rollover']          = (count_business_days(
-            vx_st_df.index, vx_st_df['Front-Month Expiration Date']) - 1)
-    vx_st_df['Front-Month Weight']          = vx_st_df['Days Till Rollover'] / vx_st_df['Roll Period']
-    vx_st_df['Back-Month Weight']           = 1.0 - vx_st_df['Front-Month Weight']
-    vx_st_df['STCMVF']                      =\
-        vx_st_df['Front-Month Weight'] * vx_st_df['Front-Month Settle'] +\
-        vx_st_df['Back-Month Weight'] * vx_st_df['Back-Month Settle']
+    vx_continuous_df['Prior-Month Expiration Date'] = vx_pm_s
+    vx_continuous_df['Front-Month Settle']          = vx_fm_df['Settle']
+    vx_continuous_df['Front-Month Expiration Date'] = vx_fm_df['Expiration Date']
+    vx_continuous_df['Back-Month Settle']           = vx_bm_df['Settle']
+    vx_continuous_df['Back-Month Expiration Date']  = vx_bm_df['Expiration Date']
+    vx_continuous_df['Roll Period']                 = count_business_days(
+            vx_continuous_df['Prior-Month Expiration Date'], vx_continuous_df['Front-Month Expiration Date'])
+    vx_continuous_df['Days Till Rollover']          = (count_business_days(
+            vx_continuous_df.index, vx_continuous_df['Front-Month Expiration Date']) - 1)
+    vx_continuous_df['Front-Month Weight']          = vx_continuous_df['Days Till Rollover'] / vx_continuous_df['Roll Period']
+    vx_continuous_df['Back-Month Weight']           = 1.0 - vx_continuous_df['Front-Month Weight']
+    vx_continuous_df['STCMVF']                      =\
+        vx_continuous_df['Front-Month Weight'] * vx_continuous_df['Front-Month Settle'] +\
+        vx_continuous_df['Back-Month Weight'] * vx_continuous_df['Back-Month Settle']
 
-    logger.debug('vx_st_df =\n{}'.format(vx_st_df[['Front-Month Expiration Date','Roll Period',
+    logger.debug('vx_continuous_df =\n{}'.format(vx_continuous_df[['Front-Month Expiration Date','Roll Period',
         'Days Till Rollover','Front-Month Weight','Back-Month Weight']]))
+    return(vx_continuous_df)
+#END: build_continuous_vx_dataframe
+
+def test_plot():
+    """Test unit that plots STCMVF and VIX over time."""
+
+    # Debug-level logging.
+    logger.setLevel(logging.DEBUG)
+    fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh = logging.FileHandler('cboe.test_plot.log', 'w')
+    fh.setFormatter(fmt)
+    con = logging.StreamHandler(sys.stdout)
+    con.setFormatter(fmt)
+    logger.addHandler(fh)
+    logger.addHandler(con)
+
+    # Setup timeframe to cover last 2 years from the most recent business day.
+    timeframe     = 2*200
+    end_date      = (now - bday_us*(not is_business_day(now))).normalize()
+    start_date    = end_date - timeframe*bday_us
+    target_period = pd.date_range(start=start_date, end=end_date, freq=bday_us)
+
+    logger.debug('target_period =\n{}'.format(target_period))
+
+    # Load VX contracts.
+    vx_contract_df = fetch_vx_contracts(target_period)
+
+    # Build dataframe of continuous VX data.
+    vx_continuous_df = build_continuous_vx_dataframe(vx_contract_df)
 
     # Fetch VIX daily quotes from Yahoo! Finance.
-    vix_df = web.DataReader('^VIX', 'yahoo', start=vx_pm_s.index[0], end=vx_pm_s.index[-1])
+    vix_df = web.DataReader('^VIX', 'yahoo',
+            start=vx_continuous_df.index[0], end=vx_continuous_df.index[-1])
     vix_df = vix_df.tz_localize('UTC') # make dates timezone-aware
-    vx_st_df['VIX'] = vix_df['Adj Close']
+    vx_continuous_df['VIX'] = vix_df['Adj Close']
 
     # Plot
-    vx_st_df[['VIX','STCMVF']].plot()
+    vx_continuous_df[['VIX','STCMVF']].plot()
     plt.savefig('st.png')
 
     # Drop into a Python shell with all definitions.
