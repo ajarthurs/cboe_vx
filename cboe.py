@@ -500,11 +500,10 @@ def build_continuous_vx_dataframe(vx_contract_df):
 
     Examples
     --------
-    Calculate continuous VX data from January 15 2017 to today (April 14 2017
-    at the time this code was executed).
+    Calculate continuous VX data from January 15 2017 to April 14 2017.
     >>> period = pd.date_range(
             start = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
-            end   = cboe.now,
+            end   = datetime(2017,4,14, tzinfo=pytz.timezone('UTC')),
             freq  = cboe.bday_us)
     >>> vx_contract_df = cboe.fetch_vx_contracts(period)
     >>> vx_continuous_df = cboe.build_continuous_vx_dataframe(vx_contract_df)
