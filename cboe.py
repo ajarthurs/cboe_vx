@@ -648,6 +648,9 @@ def test_plot():
 
     # Drop into a Python shell with all definitions.
     code.interact(local=dict(globals(), **locals()))
+
+    # Test done. Reset logging.
+    logger.setLevel(logging.WARNING)
 #END: test_plot
 
 if(__name__ == '__main__'):
