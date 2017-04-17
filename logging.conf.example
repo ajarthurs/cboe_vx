@@ -48,5 +48,5 @@ args=(
         (), 2) #use STARTTLS
 
 [formatter_simpleFormatter]
-format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+format=%(asctime)s - %(name)s:%(funcName)s - %(levelname)s - %(message)s
 datefmt=
