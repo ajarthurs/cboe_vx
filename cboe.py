@@ -69,8 +69,8 @@ def fetch_vx_contracts(period, force_update=False):
     Examples
     --------
     >>> period = pd.date_range(
-            start = datetime(2016,1,15),
-            end   = datetime(2017,1,15),
+            start = datetime(2016,1,15, tzinfo=pytz.timezone('UTC')),
+            end   = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
             freq  = cboe.bday_us)
     >>> vx_df = cboe.fetch_vx_contracts(period)
     >>> vx_df[['Futures', 'Expiration Date', 'Settle']]
