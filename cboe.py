@@ -7,14 +7,11 @@ import pandas as pd
 #from pandas.tseries.holiday import USFederalHolidayCalendar,AbstractHolidayCalendar
 from holiday import USMarketHolidayCalendar
 from pandas.tseries.offsets import CDay,Day,Week,MonthBegin,MonthEnd
-import pandas_datareader.data as web
-import matplotlib.pyplot as plt
 import calendar
 import re
 import pickle
 import sys
 import os
-import code
 import logging
 
 logger = logging.getLogger(__name__)
@@ -642,6 +639,9 @@ def build_continuous_vx_dataframe(vx_contract_df):
 
 def test_plot():
     """Test unit that plots STCMVF and VIX over time."""
+    import pandas_datareader.data as web
+    import matplotlib.pyplot as plt
+    import code
 
     # Debug-level logging.
     logger.setLevel(logging.DEBUG)
