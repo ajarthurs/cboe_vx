@@ -51,12 +51,17 @@ def main():
     vx_continuous_df = cboe.build_continuous_vx_dataframe(vx_contract_df)
     logger.debug('vx_continuous_df =\n{}'.format(vx_continuous_df))
 
-    # Fetch VIX daily quotes from Yahoo! Finance.
-    vix_df = web.DataReader('^VIX', 'yahoo',
-            start=vx_continuous_df.index[0], end=vx_continuous_df.index[-1])
-    vix_df = vix_df.tz_localize('UTC') # make dates timezone-aware
-    vx_continuous_df['VIX'] = vix_df['Adj Close']
-    logger.debug('vix_df =\n{}'.format(vix_df))
+    try:
+        # Fetch VIX daily quotes from Yahoo! Finance.
+        vix_df = web.DataReader('^VIX', 'yahoo',
+                start=vx_continuous_df.index[0], end=vx_continuous_df.index[-1])
+        vix_df = vix_df.tz_localize('UTC') # make dates timezone-aware
+        vx_continuous_df['VIX'] = vix_df['Adj Close']
+        logger.debug('vix_df =\n{}'.format(vix_df))
+    except:
+        logger.warning('Failed to download VIX index values from Yahoo! Finance.')
+        st_post_chart = False
+        vx_continuous_df['VIX'] = np.nan
 
     # Plot to stcmvf.png
     if(st_post_chart):
