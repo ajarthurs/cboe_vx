@@ -9,6 +9,7 @@ import pandas as pd
 import pandas_datareader.data as web
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
+import numpy as np
 import requests
 import ssl
 import mimetypes
@@ -133,6 +134,9 @@ def generate_vx_figure(vx_continuous_df):
         Dataframe generated from cboe.build_continuous_vx_dataframe with an
         added column, 'VIX', that represents VIX's values.
     """
+    years = np.ceil((vx_continuous_df.index[-1] - vx_continuous_df.index[0]).days / 365.0)
+
+    # Setup a grid of sub-plots.
     fig = plt.figure(1)
     gs  = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[2, 1])
 
@@ -144,27 +148,38 @@ def generate_vx_figure(vx_continuous_df):
     plt.setp(timeseries_axes1.get_xticklabels(), visible=False) # hide date labels on top subplot
     plt.grid(True)
     plt.ylabel('Volatility Level')
-    plt.title('Daily Chart')
+    plt.title('{:0.0f}-Year Daily Chart'.format(years))
 
     # Percent difference between STCMVF and VIX
     timeseries_axes2 = plt.subplot(gs[2], sharex=timeseries_axes1)
     timeseries_axes2.plot(((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0) * 100.0)
     plt.grid(True)
-    plt.ylabel('Difference (%)')
-    plt.ylim(-50, 50)
+    ys, ye = timeseries_axes2.get_ylim()
+    ystep  = 10.0
+    [ys, ye] = np.sign([ys, ye])*np.ceil(np.abs([ys, ye])/ystep)*ystep # round-up to nearest ystep
+    logger.debug('ys, ye = {}, {}'.format(ys, ye))
+    plt.yticks(np.arange(ys, ye, ystep)) # set rounded y-values stepped by ystep
+    plt.ylabel('STCMVF-VIX (%)')
 
     # Histogram of STCMVF
     plt.legend()
     hist_axes = plt.subplot(gs[1])
     hist_axes.hist(vx_continuous_df['VIX'], bins=25, label='VIX')
     hist_axes.hist(vx_continuous_df['STCMVF'], bins=25, label='STCMVF', alpha=0.75)
+    plt.grid(True)
+    xs, xe = hist_axes.get_xlim()
+    xstep  = 5.0
+    [xs, xe] = np.sign([xs, xe])*np.ceil(np.abs([xs, xe])/xstep)*xstep # round-up to nearest xstep
+    logger.debug('xs, xe = {}, {}'.format(xs, xe))
+    plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by 5
     plt.xlabel('Volatility Level')
     plt.ylabel('Occurrences')
+    plt.title('Histogram')
 
     # Minor adjustments
     plt.setp(timeseries_axes2.get_xticklabels(), rotation=60, # rotate dates along x-axis
             horizontalalignment='right')
-    plt.subplots_adjust(bottom=0.2, hspace=0, wspace=0.3) # remove space between subplots
+    plt.subplots_adjust(bottom=0.2, hspace=0.1, wspace=0.3) # adjust spacing between and around sub-plots
 #END: generate_vx_figure
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
