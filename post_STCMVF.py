@@ -141,7 +141,6 @@ def generate_vx_figure(vx_continuous_df):
     gs  = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[2, 1])
 
     # VIX vs STCMVF
-    plt.legend()
     timeseries_axes1 = plt.subplot(gs[0])
     timeseries_axes1.plot(vx_continuous_df['VIX'], label='VIX')
     timeseries_axes1.plot(vx_continuous_df['STCMVF'], label='STCMVF', alpha=0.75)
@@ -162,7 +161,6 @@ def generate_vx_figure(vx_continuous_df):
     plt.ylabel('STCMVF-VIX (%)')
 
     # Histogram of STCMVF
-    plt.legend()
     hist_axes = plt.subplot(gs[1])
     hist_axes.hist(vx_continuous_df['VIX'], bins=25, label='VIX')
     hist_axes.hist(vx_continuous_df['STCMVF'], bins=25, label='STCMVF', alpha=0.75)
@@ -175,6 +173,7 @@ def generate_vx_figure(vx_continuous_df):
     plt.xlabel('Volatility Level')
     plt.ylabel('Occurrences')
     plt.title('Histogram')
+    plt.legend(bbox_to_anchor=(0.5, -0.25), loc='upper center', ncol=1) # place legend below histogram
 
     # Minor adjustments
     plt.setp(timeseries_axes2.get_xticklabels(), rotation=60, # rotate dates along x-axis
