@@ -163,8 +163,8 @@ def generate_vx_figure(vx_continuous_df):
 
     # Histogram of STCMVF
     hist_axes = plt.subplot(gs[1])
-    hist_axes.hist(vx_continuous_df['VIX'], bins='auto', label='VIX')
-    hist_axes.hist(vx_continuous_df['STCMVF'], bins='auto', label='STCMVF', alpha=0.75)
+    hist_axes.hist(vx_continuous_df['VIX'].dropna(), bins='auto', label='VIX')
+    hist_axes.hist(vx_continuous_df['STCMVF'].dropna(), bins='auto', label='STCMVF', alpha=0.75)
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
