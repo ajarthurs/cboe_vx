@@ -151,7 +151,8 @@ def generate_vx_figure(vx_continuous_df):
 
     # Percent difference between STCMVF and VIX
     timeseries_axes2 = plt.subplot(gs[2], sharex=timeseries_axes1)
-    timeseries_axes2.plot(((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0) * 100.0)
+    timeseries_axes2.plot(((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0) * 100.0,
+            'k-')
     plt.grid(True)
     ys, ye = timeseries_axes2.get_ylim()
     ystep  = 10.0
@@ -162,8 +163,8 @@ def generate_vx_figure(vx_continuous_df):
 
     # Histogram of STCMVF
     hist_axes = plt.subplot(gs[1])
-    hist_axes.hist(vx_continuous_df['VIX'], bins=25, label='VIX')
-    hist_axes.hist(vx_continuous_df['STCMVF'], bins=25, label='STCMVF', alpha=0.75)
+    hist_axes.hist(vx_continuous_df['VIX'], bins='auto', label='VIX')
+    hist_axes.hist(vx_continuous_df['STCMVF'], bins='auto', label='STCMVF', alpha=0.75)
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
