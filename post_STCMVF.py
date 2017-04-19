@@ -58,11 +58,10 @@ def main():
     else:
         vx_continuous_df['VIX'] = vix_df['Adj Close']
 
-    # Plot to stcmvf.png
     if(st_post_chart):
-        p = vx_continuous_df[['VIX','STCMVF']].plot()
+        # Plot to image file.
+        generate_vx_figure(vx_continuous_df)
         plt.savefig(chart_file)
-        logger.debug('plot = {}'.format(p))
 
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
@@ -121,6 +120,20 @@ def fetch_yahoo_ticker(ticker, index):
         success = False
     return(vix_df, success)
 #END: fetch_yahoo_ticker
+
+def generate_vx_figure(vx_continuous_df):
+    """
+    Create the continuous VX figure, which plots STCMVF and VIX over time, the
+    percent difference between STCMVF and VIX, and a histogram of STCMVF.
+
+    Parameters
+    ----------
+    vx_continuous_df : pd.DataFrame
+        Dataframe generated from cboe.build_continuous_vx_dataframe with an
+        added column, 'VIX', that represents VIX's values.
+    """
+    vx_continuous_df[['VIX','STCMVF']].plot()
+#END: generate_vx_figure
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
     """
