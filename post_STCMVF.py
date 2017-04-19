@@ -42,7 +42,7 @@ def main():
     st_post_chart     = False
     chart_file        = 'chart.png'
     st_preamble       = st_cash_tags if st_post_cash_tags else '(TEST)'
-    st_message        = '{} Short-term constant-maturity VIX futures settled @ {:.3f} ({:+.1%}).'
+    st_message        = '{} Short-term constant-maturity VIX futures (STCMVF) settled @ {:.3f} ({:+.1%}).'
 
     # Load VX contracts.
     vx_contract_df = cboe.fetch_vx_contracts(target_period)
