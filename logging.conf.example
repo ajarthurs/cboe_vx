@@ -5,7 +5,7 @@
 # 2. Fill in the SMTP variables below
 
 [loggers]
-keys=root,post_STCMVF
+keys=root,post_STCMVF,cboe
 
 [handlers]
 keys=consoleHandler,fileHandler,smtpHandler
@@ -21,6 +21,12 @@ handlers=consoleHandler
 level=DEBUG
 handlers=consoleHandler,fileHandler,smtpHandler
 qualname=post_STCMVF
+propagate=0
+
+[logger_cboe]
+level=DEBUG
+handlers=consoleHandler,fileHandler,smtpHandler
+qualname=cboe
 propagate=0
 
 [handler_consoleHandler]
