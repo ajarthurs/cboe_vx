@@ -134,35 +134,35 @@ def generate_vx_figure(vx_continuous_df):
         added column, 'VIX', that represents VIX's values.
     """
     fig = plt.figure(1)
-    gs = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[2, 1])
+    gs  = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[2, 1])
 
     # VIX vs STCMVF
-    date_axis1 = plt.subplot(gs[0])
-    date_axis1.plot(vx_continuous_df['VIX'], label='VIX')
-    date_axis1.plot(vx_continuous_df['STCMVF'], label='STCMVF', alpha=0.75)
-    plt.setp(date_axis1.get_xticklabels(), visible=False) # hide date labels on top subplot
     plt.legend()
+    timeseries_axes1 = plt.subplot(gs[0])
+    timeseries_axes1.plot(vx_continuous_df['VIX'], label='VIX')
+    timeseries_axes1.plot(vx_continuous_df['STCMVF'], label='STCMVF', alpha=0.75)
+    plt.setp(timeseries_axes1.get_xticklabels(), visible=False) # hide date labels on top subplot
     plt.grid(True)
     plt.ylabel('Volatility Level')
     plt.title('Daily Chart')
 
     # Percent difference between STCMVF and VIX
-    date_axis2 = plt.subplot(gs[2], sharex=date_axis1)
-    date_axis2.plot(((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0) * 100.0)
+    timeseries_axes2 = plt.subplot(gs[2], sharex=timeseries_axes1)
+    timeseries_axes2.plot(((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0) * 100.0)
     plt.grid(True)
     plt.ylabel('Difference (%)')
     plt.ylim(-50, 50)
 
     # Histogram of STCMVF
-    hist_axis = plt.subplot(gs[1])
-    hist_axis.hist(vx_continuous_df['VIX'], bins=25, label='VIX')
-    hist_axis.hist(vx_continuous_df['STCMVF'], bins=25, label='STCMVF', alpha=0.75)
     plt.legend()
+    hist_axes = plt.subplot(gs[1])
+    hist_axes.hist(vx_continuous_df['VIX'], bins=25, label='VIX')
+    hist_axes.hist(vx_continuous_df['STCMVF'], bins=25, label='STCMVF', alpha=0.75)
     plt.xlabel('Volatility Level')
     plt.ylabel('Occurrences')
 
     # Minor adjustments
-    plt.setp(date_axis2.get_xticklabels(), rotation=60, # rotate dates along x-axis
+    plt.setp(timeseries_axes2.get_xticklabels(), rotation=60, # rotate dates along x-axis
             horizontalalignment='right')
     plt.subplots_adjust(bottom=0.2, hspace=0, wspace=0.3) # remove space between subplots
 #END: generate_vx_figure
