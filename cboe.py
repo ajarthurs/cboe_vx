@@ -337,6 +337,7 @@ def fetch_vx_daily_settlement():
     logger.debug('type(monthly_vx_eod_values) = {}'.format(type(monthly_vx_eod_values)))
     logger.debug('monthly_vx_eod_values =\n{}'.format(monthly_vx_eod_values))
 
+    # Add datetime-formatted column of expiration dates.
     try:
         monthly_vx_eod_values['Expiration Date'] = [
                 pd.to_datetime(
@@ -350,6 +351,9 @@ def fetch_vx_daily_settlement():
     except:
         logger.exception('Failed to read monthly contract expiration dates.')
         raise
+
+    # Filter out expired contracts.
+    monthly_vx_eod_values = monthly_vx_eod_values[monthly_vx_eod_values['Expiration Date'] > now]
 
     logger.debug('monthly_vx_eod_values =\n{}'.format(monthly_vx_eod_values))
 
