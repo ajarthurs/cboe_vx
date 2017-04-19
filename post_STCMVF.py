@@ -51,17 +51,12 @@ def main():
     vx_continuous_df = cboe.build_continuous_vx_dataframe(vx_contract_df)
     logger.debug('vx_continuous_df =\n{}'.format(vx_continuous_df))
 
-    try:
-        # Fetch VIX daily quotes from Yahoo! Finance.
-        vix_df = web.DataReader('^VIX', 'yahoo',
-                start=vx_continuous_df.index[0], end=vx_continuous_df.index[-1])
-        vix_df = vix_df.tz_localize('UTC') # make dates timezone-aware
-        vx_continuous_df['VIX'] = vix_df['Adj Close']
-        logger.debug('vix_df =\n{}'.format(vix_df))
-    except:
-        logger.warning('Failed to download VIX index values from Yahoo! Finance.')
+    # Add 'VIX' column to continuous dataframe.
+    (vix_df, success) = fetch_yahoo_ticker('^VIX', vx_continuous_df.index)
+    if(not success):
         st_post_chart = False
-        vx_continuous_df['VIX'] = np.nan
+    else:
+        vx_continuous_df['VIX'] = vix_df['Adj Close']
 
     # Plot to stcmvf.png
     if(st_post_chart):
@@ -90,6 +85,42 @@ def main():
     post_to_stocktwits(st_access_token, st_message, attachment=st_attachment,
             dry_run=st_dry_run)
 #END: main
+
+def fetch_yahoo_ticker(ticker, index):
+    """
+    Retrieve data for ticker over a given period from Yahoo! Finance. Note
+    that Yahoo! Finance does NOT include today's data.
+
+    Parameters
+    ----------
+    ticker : str
+        Stock/ETF/Index ticker.
+
+    index : pd.DatetimeIndex
+        Period over which to fetch the data.
+
+    Returns
+    -------
+    (pd.DataFrame, bool)
+        Ticker data from Yahoo! Finance and whether or not successful. Columns provided are:
+            Open
+            High
+            Low
+            Close
+            Volume
+            Adj Close
+    """
+    try:
+        # Fetch VIX daily quotes from Yahoo! Finance.
+        vix_df = web.DataReader('^VIX', 'yahoo', start=index[0], end=index[-1])
+        vix_df = vix_df.tz_localize('UTC') # make dates timezone-aware
+        logger.debug('vix_df =\n{}'.format(vix_df))
+        success = True
+    except:
+        logger.warning('Failed to download VIX index values from Yahoo! Finance.')
+        success = False
+    return(vix_df, success)
+#END: fetch_yahoo_ticker
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
     """
