@@ -28,9 +28,9 @@ def main():
     logger.debug('Today ({:%Y-%m-%d}) is a workday. Proceeding...'.format(cboe.now))
 
     # Setup timeframe to cover last 2 years from the most recent business day.
-    timeframe     = 2*200
+    years         = 2
     end_date      = (cboe.now - cboe.bday_us*(not cboe.is_business_day(cboe.now))).normalize()
-    start_date    = end_date - timeframe*cboe.bday_us
+    start_date    = end_date - years*365*cboe.Day()
     target_period = pd.date_range(start=start_date, end=end_date, freq=cboe.bday_us)
 
     logger.debug('target_period =\n{}'.format(target_period))
