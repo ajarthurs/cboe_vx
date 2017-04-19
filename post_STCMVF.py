@@ -138,21 +138,27 @@ def generate_vx_figure(vx_continuous_df):
 
     # VIX vs STCMVF
     date_axis1 = plt.subplot(gs[0])
-    date_axis1.plot(vx_continuous_df[['VIX','STCMVF']])
+    date_axis1.plot(vx_continuous_df['VIX'], label='VIX')
+    date_axis1.plot(vx_continuous_df['STCMVF'], label='STCMVF', alpha=0.75)
     plt.setp(date_axis1.get_xticklabels(), visible=False) # hide date labels on top subplot
+    plt.legend()
+    plt.grid(True)
     plt.ylabel('Volatility Level')
+    plt.title('Daily Chart')
 
     # Percent difference between STCMVF and VIX
     date_axis2 = plt.subplot(gs[1], sharex=date_axis1)
-    date_axis2.plot((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0)
+    date_axis2.plot(((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0) * 100.0)
+    plt.grid(True)
     plt.ylabel('Difference (%)')
+    plt.ylim(-50, 50)
 
     # Histogram of STCMVF
 
     # Minor adjustments
-    plt.setp(date_axis2.get_xticklabels(), rotation=30, # rotate dates along x-axis
+    plt.setp(date_axis2.get_xticklabels(), rotation=60, # rotate dates along x-axis
             horizontalalignment='right')
-    plt.subplots_adjust(hspace=0) # remove space between subplots
+    plt.subplots_adjust(bottom=0.2, hspace=0, wspace=0.3) # remove space between subplots
 #END: generate_vx_figure
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
