@@ -134,7 +134,7 @@ def generate_vx_figure(vx_continuous_df):
         added column, 'VIX', that represents VIX's values.
     """
     fig = plt.figure(1)
-    gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
+    gs = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[2, 1])
 
     # VIX vs STCMVF
     date_axis1 = plt.subplot(gs[0])
@@ -147,13 +147,19 @@ def generate_vx_figure(vx_continuous_df):
     plt.title('Daily Chart')
 
     # Percent difference between STCMVF and VIX
-    date_axis2 = plt.subplot(gs[1], sharex=date_axis1)
+    date_axis2 = plt.subplot(gs[2], sharex=date_axis1)
     date_axis2.plot(((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0) * 100.0)
     plt.grid(True)
     plt.ylabel('Difference (%)')
     plt.ylim(-50, 50)
 
     # Histogram of STCMVF
+    hist_axis = plt.subplot(gs[1])
+    hist_axis.hist(vx_continuous_df['VIX'], bins=25, label='VIX')
+    hist_axis.hist(vx_continuous_df['STCMVF'], bins=25, label='STCMVF', alpha=0.75)
+    plt.legend()
+    plt.xlabel('Volatility Level')
+    plt.ylabel('Occurrences')
 
     # Minor adjustments
     plt.setp(date_axis2.get_xticklabels(), rotation=60, # rotate dates along x-axis
