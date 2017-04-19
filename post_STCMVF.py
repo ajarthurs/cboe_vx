@@ -62,7 +62,7 @@ def main():
     if(st_post_chart):
         # Plot to image file.
         generate_vx_figure(vx_continuous_df)
-        plt.savefig(chart_file)
+        plt.savefig(chart_file, dpi=300)
 
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
