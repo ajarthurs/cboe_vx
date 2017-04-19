@@ -40,7 +40,7 @@ def main():
     st_dry_run        = False
     st_post_cash_tags = True
     st_cash_tags      = '$VXX $XIV $SVXY $TVIX $UVXY'
-    st_post_chart     = False
+    st_post_chart     = True
     chart_file        = 'chart.png'
     st_preamble       = st_cash_tags if st_post_cash_tags else '(TEST)'
     st_message        = '{} Short-term constant-maturity VIX futures (STCMVF) settled @ {:.3f} ({:+.1%}).'
