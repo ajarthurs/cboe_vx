@@ -8,6 +8,7 @@ import cboe
 import pandas as pd
 import pandas_datareader.data as web
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 import requests
 import ssl
 import mimetypes
@@ -132,7 +133,26 @@ def generate_vx_figure(vx_continuous_df):
         Dataframe generated from cboe.build_continuous_vx_dataframe with an
         added column, 'VIX', that represents VIX's values.
     """
-    vx_continuous_df[['VIX','STCMVF']].plot()
+    fig = plt.figure(1)
+    gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1])
+
+    # VIX vs STCMVF
+    date_axis1 = plt.subplot(gs[0])
+    date_axis1.plot(vx_continuous_df[['VIX','STCMVF']])
+    plt.setp(date_axis1.get_xticklabels(), visible=False) # hide date labels on top subplot
+    plt.ylabel('Volatility Level')
+
+    # Percent difference between STCMVF and VIX
+    date_axis2 = plt.subplot(gs[1], sharex=date_axis1)
+    date_axis2.plot((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0)
+    plt.ylabel('Difference (%)')
+
+    # Histogram of STCMVF
+
+    # Minor adjustments
+    plt.setp(date_axis2.get_xticklabels(), rotation=30, # rotate dates along x-axis
+            horizontalalignment='right')
+    plt.subplots_adjust(hspace=0) # remove space between subplots
 #END: generate_vx_figure
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
