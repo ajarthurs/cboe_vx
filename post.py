@@ -3,7 +3,7 @@
 # Calculate the daily short-term VIX futures value and
 # post value to StockTwits.
 
-from credentials import st_access_token
+import settings
 import cboe
 import pandas as pd
 import pandas_datareader.data as web
@@ -29,21 +29,11 @@ def main():
     logger.debug('Today ({:%Y-%m-%d}) is a workday. Proceeding...'.format(cboe.now))
 
     # Setup timeframe to cover last 2 years from the most recent business day.
-    years         = 2
     end_date      = (cboe.now - cboe.bday_us*(not cboe.is_business_day(cboe.now))).normalize()
-    start_date    = end_date - years*365*cboe.Day()
+    start_date    = end_date - settings.years*365*cboe.Day()
     target_period = pd.date_range(start=start_date, end=end_date, freq=cboe.bday_us)
 
     logger.debug('target_period =\n{}'.format(target_period))
-
-    # StockTwits settings.
-    st_dry_run        = True
-    st_post_cash_tags = True
-    st_cash_tags      = '$VXX $XIV $SVXY $TVIX $UVXY'
-    st_post_chart     = True
-    chart_file        = 'chart.png'
-    st_preamble       = st_cash_tags if st_post_cash_tags else '(TEST)'
-    st_message        = '{} Short-term constant-maturity VIX futures (STCMVF) settled @ {:.3f} ({:+.1%}).'
 
     # Load VX contracts.
     vx_contract_df = cboe.fetch_vx_contracts(target_period)
@@ -55,15 +45,14 @@ def main():
 
     # Add 'VIX' column to continuous dataframe.
     (vix_df, success) = fetch_yahoo_ticker('^VIX', vx_continuous_df.index)
-    if(not success):
-        st_post_chart = False
-    else:
+    st_post_chart     = settings.st_post_chart and success
+    if(success):
         vx_continuous_df['VIX'] = vix_df['Adj Close']
 
     if(st_post_chart):
         # Plot to image file.
         generate_vx_figure(vx_continuous_df)
-        plt.savefig(chart_file, dpi=300)
+        plt.savefig(settings.chart_file, dpi=300)
 
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
@@ -75,16 +64,16 @@ def main():
     logger.debug('vx_today =\n{}'.format(vx_today))
 
     # Post to StockTwits.
-    st_message = st_message.format(st_preamble, stcmvf_today, stcmvf_percent)
+    st_message = settings.st_message.format(settings.st_preamble, stcmvf_today, stcmvf_percent)
     logger.debug('st_message = {}'.format(st_message))
 
     if(st_post_chart):
-        st_attachment = chart_file
-        logger.debug('Posting message with {}.'.format(chart_file))
+        st_attachment = settings.chart_file
+        logger.debug('Posting message with {}.'.format(settings.chart_file))
     else:
         st_attachment = None
-    post_to_stocktwits(st_access_token, st_message, attachment=st_attachment,
-            dry_run=st_dry_run)
+    post_to_stocktwits(settings.st_access_token, st_message, attachment=st_attachment,
+            dry_run=settings.st_dry_run)
 #END: main
 
 def fetch_yahoo_ticker(ticker, index):

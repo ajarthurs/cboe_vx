@@ -1,0 +1,19 @@
+# Various application settings.
+#
+# To set things up, do the following:
+# 1. Copy this file to settings.py
+# 2. Fill in the variables below
+
+# Application settings.
+years      = 2
+chart_file = 'chart.png'
+
+# StockTwits settings.
+# (see https://stocktwits.com/developers/docs/authentication)
+st_dry_run        = True
+st_access_token   = 'my-StockTwits-access-token'
+st_post_cash_tags = True
+st_cash_tags      = '$VXX $XIV $SVXY $TVIX $UVXY'
+st_post_chart     = True
+st_preamble       = st_cash_tags if st_post_cash_tags else '(TEST)'
+st_message        = '{} Short-term constant-maturity VIX futures (STCMVF) settled @ {:.3f} ({:+.1%}).'
