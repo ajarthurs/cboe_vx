@@ -45,14 +45,19 @@ def main():
 
     # Add 'VIX' column to continuous dataframe.
     (vix_df, success) = fetch_yahoo_ticker('^VIX', vx_continuous_df.index)
-    st_post_chart     = settings.st_post_chart and success
+    st_post_st_chart  = settings.st_post_st_chart and success
+    st_post_mt_chart  = settings.st_post_mt_chart and success
     if(success):
         vx_continuous_df['VIX'] = vix_df['Adj Close']
 
-    if(st_post_chart):
-        # Plot to image file.
-        generate_vx_figure(vx_continuous_df)
-        plt.savefig(settings.chart_file, dpi=300)
+    if(st_post_st_chart):
+        # Plot short-term VX data to image file.
+        generate_st_vx_figure(vx_continuous_df)
+        plt.savefig(settings.st_st_chart_file, dpi=300)
+    if(st_post_mt_chart):
+        # Plot medium-term VX data to image file.
+        generate_mt_vx_figure(vx_continuous_df)
+        plt.savefig(settings.st_mt_chart_file, dpi=300)
 
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
@@ -60,19 +65,32 @@ def main():
     stcmvf_yesterday = vx_yesterday['STCMVF']
     stcmvf_today     = vx_today['STCMVF']
     stcmvf_percent   = (stcmvf_today / stcmvf_yesterday) - 1.0
+    mtcmvf_yesterday = vx_yesterday['MTCMVF']
+    mtcmvf_today     = vx_today['MTCMVF']
+    mtcmvf_percent   = (mtcmvf_today / mtcmvf_yesterday) - 1.0
     logger.debug('vx_yesterday =\n{}'.format(vx_yesterday))
     logger.debug('vx_today =\n{}'.format(vx_today))
 
     # Post to StockTwits.
-    st_message = settings.st_message.format(settings.st_preamble, stcmvf_today, stcmvf_percent)
-    logger.debug('st_message = {}'.format(st_message))
+    st_st_message = settings.st_st_message.format(settings.st_st_preamble, stcmvf_today, stcmvf_percent)
+    st_mt_message = settings.st_mt_message.format(settings.st_mt_preamble, mtcmvf_today, mtcmvf_percent)
+    logger.debug('st_st_message = {}'.format(st_st_message))
+    logger.debug('st_mt_message = {}'.format(st_mt_message))
 
-    if(st_post_chart):
-        st_attachment = settings.chart_file
-        logger.debug('Posting message with {}.'.format(settings.chart_file))
+    if(st_post_st_chart):
+        st_st_attachment = settings.st_st_chart_file
+        logger.debug('Posting message with {}.'.format(settings.st_st_chart_file))
     else:
-        st_attachment = None
-    post_to_stocktwits(settings.st_access_token, st_message, attachment=st_attachment,
+        st_st_attachment = None
+    if(st_post_mt_chart):
+        st_mt_attachment = settings.st_mt_chart_file
+        logger.debug('Posting message with {}.'.format(settings.st_mt_chart_file))
+    else:
+        st_mt_attachment = None
+
+    post_to_stocktwits(settings.st_access_token, st_st_message, attachment=st_st_attachment,
+            dry_run=settings.st_dry_run)
+    post_to_stocktwits(settings.st_access_token, st_mt_message, attachment=st_mt_attachment,
             dry_run=settings.st_dry_run)
 #END: main
 
@@ -112,7 +130,7 @@ def fetch_yahoo_ticker(ticker, index):
     return(vix_df, success)
 #END: fetch_yahoo_ticker
 
-def generate_vx_figure(vx_continuous_df):
+def generate_st_vx_figure(vx_continuous_df):
     """
     Create the continuous VX figure, which plots STCMVF and VIX over time, the
     percent difference between STCMVF and VIX, and a histogram of STCMVF.
@@ -173,7 +191,52 @@ def generate_vx_figure(vx_continuous_df):
     plt.setp(timeseries_axes2.get_xticklabels(), rotation=60, # rotate dates along x-axis
             horizontalalignment='right')
     plt.subplots_adjust(bottom=0.2, hspace=0.1, wspace=0.3) # adjust spacing between and around sub-plots
-#END: generate_vx_figure
+#END: generate_st_vx_figure
+
+def generate_mt_vx_figure(vx_continuous_df):
+    """
+    Create the continuous VX figure, which plots MTCMVF and VIX over time, the
+    percent difference between MTCMVF and VIX, and a histogram of MTCMVF.
+
+    Parameters
+    ----------
+    vx_continuous_df : pd.DataFrame
+        Dataframe generated from cboe.build_continuous_vx_dataframe with an
+        added column, 'VIX', that represents VIX's values.
+    """
+    years = np.ceil((vx_continuous_df.index[-1] - vx_continuous_df.index[0]).days / 365.0)
+
+    # Setup a grid of sub-plots.
+    fig = plt.figure(1)
+    gs  = gridspec.GridSpec(1, 2, width_ratios=[2, 1])
+
+    # MTCMVF
+    timeseries_axes = plt.subplot(gs[0])
+    timeseries_axes.plot(vx_continuous_df['MTCMVF'], label='MTCMVF')
+    plt.grid(True)
+    plt.ylabel('Volatility Level')
+    plt.title('MTCMVF {:0.0f}-Year Daily Chart'.format(years))
+
+    # Histogram of MTCMVF
+    hist_axes = plt.subplot(gs[1])
+    hist_axes.hist(vx_continuous_df['MTCMVF'].dropna(), bins='auto', label='MTCMVF')
+    plt.grid(True)
+    xs, xe = hist_axes.get_xlim()
+    xstep  = 5.0
+    logger.debug('xs, xe (before)= {}, {}'.format(xs, xe))
+    xs = np.max([10.0, np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep]) # round-down to nearest xstep
+    xe = np.sign(xe)*np.ceil(np.abs(xe)/xstep)*xstep # round-up to nearest xstep
+    logger.debug('xs, xe (after)= {}, {}'.format(xs, xe))
+    plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by 5
+    plt.xlabel('Volatility Level')
+    plt.ylabel('Occurrences')
+    plt.title('Histogram')
+
+    # Minor adjustments
+    plt.setp(timeseries_axes.get_xticklabels(), rotation=60, # rotate dates along x-axis
+            horizontalalignment='right')
+    plt.subplots_adjust(bottom=0.2, hspace=0.1, wspace=0.3) # adjust spacing between and around sub-plots
+#END: generate_mt_vx_figure
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
     """

@@ -6,14 +6,22 @@
 
 # Application settings.
 years      = 2
-chart_file = 'chart.png'
 
 # StockTwits settings.
 # (see https://stocktwits.com/developers/docs/authentication)
 st_dry_run        = True
 st_access_token   = 'my-StockTwits-access-token'
-st_post_cash_tags = True
-st_cash_tags      = '$VXX $XIV $SVXY $TVIX $UVXY'
-st_post_chart     = True
-st_preamble       = st_cash_tags if st_post_cash_tags else '(TEST)'
-st_message        = '{} Short-term constant-maturity VIX futures (STCMVF) settled @ {:.3f} ({:+.1%}).'
+# Short-term VX ETPs
+st_post_st_cash_tags = True
+st_st_cash_tags      = '$VXX $XIV $SVXY $TVIX $UVXY'
+st_post_st_chart     = True
+st_st_preamble       = st_st_cash_tags if st_post_st_cash_tags else '(TEST)'
+st_st_message        = '{} Short-term constant-maturity VIX futures (STCMVF) settled @ {:.3f} ({:+.1%}).'
+st_st_chart_file     = 'st_chart.png'
+# Medium-term VX ETPs
+st_post_mt_cash_tags = True
+st_mt_cash_tags      = '$VXZ $XIZ $VIIZ $VIXM $TVIZ'
+st_post_mt_chart     = True
+st_mt_preamble       = st_mt_cash_tags if st_post_mt_cash_tags else '(TEST)'
+st_mt_message        = '{} Medium-term constant-maturity VIX futures (MTCMVF) settled @ {:.3f} ({:+.1%}).'
+st_mt_chart_file     = 'mt_chart.png'
