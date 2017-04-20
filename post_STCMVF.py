@@ -156,8 +156,10 @@ def generate_vx_figure(vx_continuous_df):
     plt.grid(True)
     ys, ye = timeseries_axes2.get_ylim()
     ystep  = 10.0
-    [ys, ye] = np.sign([ys, ye])*np.ceil(np.abs([ys, ye])/ystep)*ystep # round-up to nearest ystep
-    logger.debug('ys, ye = {}, {}'.format(ys, ye))
+    logger.debug('ys, ye (before)= {}, {}'.format(ys, ye))
+    ys = np.sign(ys)*np.floor(np.abs(ys)/ystep)*ystep # round-down to nearest ystep
+    ye = np.sign(ye)*np.ceil(np.abs(ye)/ystep)*ystep # round-up to nearest ystep
+    logger.debug('ys, ye (after)= {}, {}'.format(ys, ye))
     plt.yticks(np.arange(ys, ye, ystep)) # set rounded y-values stepped by ystep
     plt.ylabel('STCMVF-VIX (%)')
 
@@ -168,8 +170,10 @@ def generate_vx_figure(vx_continuous_df):
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
-    [xs, xe] = np.sign([xs, xe])*np.ceil(np.abs([xs, xe])/xstep)*xstep # round-up to nearest xstep
-    logger.debug('xs, xe = {}, {}'.format(xs, xe))
+    logger.debug('xs, xe (before)= {}, {}'.format(xs, xe))
+    xs = np.max([10.0, np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep]) # round-down to nearest xstep
+    xe = np.sign(xe)*np.ceil(np.abs(xe)/xstep)*xstep # round-up to nearest xstep
+    logger.debug('xs, xe (after)= {}, {}'.format(xs, xe))
     plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by 5
     plt.xlabel('Volatility Level')
     plt.ylabel('Occurrences')
