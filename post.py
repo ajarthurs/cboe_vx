@@ -180,8 +180,10 @@ def generate_st_vx_figure(vx_continuous_df):
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
+    xclamp = np.min([vix, stcmvf])
     logger.debug('xs, xe (before)= {}, {}'.format(xs, xe))
-    xs = np.max([10.0, np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep]) # round-down to nearest xstep
+    xs = np.max([xclamp, xs])
+    xs = np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep # round-down to nearest xstep
     xe = np.sign(xe)*np.ceil(np.abs(xe)/xstep)*xstep # round-up to nearest xstep
     logger.debug('xs, xe (after)= {}, {}'.format(xs, xe))
     plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by 5
@@ -227,8 +229,10 @@ def generate_mt_vx_figure(vx_continuous_df):
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
+    xclamp = np.min(mtcmvf)
     logger.debug('xs, xe (before)= {}, {}'.format(xs, xe))
-    xs = np.max([10.0, np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep]) # round-down to nearest xstep
+    xs = np.max([xclamp, xs])
+    xs = np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep # round-down to nearest xstep
     xe = np.sign(xe)*np.ceil(np.abs(xe)/xstep)*xstep # round-up to nearest xstep
     logger.debug('xs, xe (after)= {}, {}'.format(xs, xe))
     plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by 5
