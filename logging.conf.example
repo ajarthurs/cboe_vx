@@ -5,7 +5,7 @@
 # 2. Fill in the SMTP variables below
 
 [loggers]
-keys=root,post_STCMVF,cboe
+keys=root,post,cboe
 
 [handlers]
 keys=consoleHandler,fileHandler,smtpHandler
@@ -17,10 +17,10 @@ keys=simpleFormatter
 level=NOTSET
 handlers=consoleHandler
 
-[logger_post_STCMVF]
+[logger_post]
 level=DEBUG
 handlers=consoleHandler,fileHandler,smtpHandler
-qualname=post_STCMVF
+qualname=post
 propagate=0
 
 [logger_cboe]
@@ -39,7 +39,7 @@ args=(sys.stdout,)
 class=FileHandler
 level=DEBUG
 formatter=simpleFormatter
-args=('post_STCMVF.debug', 'w')
+args=('post.debug', 'w')
 
 [handler_smtpHandler]
 class=handlers.SMTPHandler
@@ -49,7 +49,7 @@ args=(
         ('smtp.host.name', smtp-port-number),
         'reply-to-address',
         ['destination-address1', 'destination-address2'],
-        'Post STCMVF Logger',
+        'Poster Logger',
         ('smtp-username', 'smtp-password'),
         (), 2) #use STARTTLS
 

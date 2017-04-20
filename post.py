@@ -19,7 +19,7 @@ import logging.config
 
 # Log setup
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger('post_STCMVF')
+logger = logging.getLogger('post')
 
 def main():
     # Is today a business day? If not, quit.
@@ -37,7 +37,7 @@ def main():
     logger.debug('target_period =\n{}'.format(target_period))
 
     # StockTwits settings.
-    st_dry_run        = False
+    st_dry_run        = True
     st_post_cash_tags = True
     st_cash_tags      = '$VXX $XIV $SVXY $TVIX $UVXY'
     st_post_chart     = True
