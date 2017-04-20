@@ -129,15 +129,16 @@ def fetch_yahoo_ticker(ticker, index):
             Adj Close
     """
     try:
-        # Fetch VIX daily quotes from Yahoo! Finance.
-        vix_df = web.DataReader('^VIX', 'yahoo', start=index[0], end=index[-1])
-        vix_df = vix_df.tz_localize('UTC') # make dates timezone-aware
-        logger.debug('vix_df =\n{}'.format(vix_df))
+        # Fetch daily quotes from Yahoo! Finance.
+        df = web.DataReader(ticker, 'yahoo', start=index[0], end=index[-1])
+        df = df.tz_localize('UTC') # make dates timezone-aware
+        logger.debug('df =\n{}'.format(df))
         success = True
     except:
-        logger.warning('Failed to download VIX index values from Yahoo! Finance.')
+        logger.warning('Failed to download {} values from Yahoo! Finance.'.format(ticker))
+        df = None
         success = False
-    return(vix_df, success)
+    return(df, success)
 #END: fetch_yahoo_ticker
 
 def generate_st_vx_figure(vx_continuous_df):
