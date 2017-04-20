@@ -330,6 +330,10 @@ def fetch_vx_daily_settlement():
     try:
         front_month_eod_value = monthly_vx_eod_values.iloc[0]
         back_month_eod_value  = monthly_vx_eod_values.iloc[1]
+        month4_eod_value      = monthly_vx_eod_values.iloc[3]
+        month5_eod_value      = monthly_vx_eod_values.iloc[4]
+        month6_eod_value      = monthly_vx_eod_values.iloc[5]
+        month7_eod_value      = monthly_vx_eod_values.iloc[6]
     except:
         logger.exception('Failed to find monthly contract settlement data.')
         raise
@@ -511,8 +515,8 @@ def build_continuous_vx_dataframe(vx_contract_df):
     ...     freq  = cboe.bday_us)
     >>> vx_contract_df = cboe.fetch_vx_contracts(period)
     >>> vx_continuous_df = cboe.build_continuous_vx_dataframe(vx_contract_df)
-    >>> vx_continuous_df[['Front-Month Settle', 'Back-Month Settle', 'STCMVF']]
-                               Front-Month Settle  Back-Month Settle     STCMVF
+    >>> vx_continuous_df[['Month1 Settle', 'Month2 Settle', 'STCMVF']]
+                                    Month1 Settle      Month2 Settle     STCMVF
     Trade Date
     2017-01-17 00:00:00+00:00              12.175             14.175  14.175000
     2017-01-18 00:00:00+00:00              14.175             15.625  14.247500
@@ -595,14 +599,14 @@ def build_continuous_vx_dataframe(vx_contract_df):
         prior_expdate_s = pd.Series(get_vx_expiration_date(prior_monthyear))
         vx_expdate_s    = pd.concat([prior_expdate_s, vx_expdate_s])
 
-    # Create continuous prior-month expiration date series, indexed by trading day.
-    vx_pm_s      = pd.Series(
+    # Create continuous prior-month (m0) expiration date series, indexed by trading day.
+    vx_pm_s = pd.Series(
             [
                 vx_expdate_s[ vx_expdate_s <= d ].iloc[-1]
                 if(len(vx_expdate_s[ vx_expdate_s <= d ]) > 0)
                 else None
                 for d in timeframe
-            ],
+                ],
             index=timeframe
             )
     vx_pm_s = vx_pm_s.dropna() # exclude entries without a prior-month contract
@@ -610,33 +614,47 @@ def build_continuous_vx_dataframe(vx_contract_df):
     logger.debug('vx_expdate_s =\n{}'.format(vx_expdate_s))
 
     # Create continuous VX futures dataframes.
-    vx_fm_df = vx_td_gb.nth(0) # front-month
-    vx_bm_df = vx_td_gb.nth(1) # back-month
+    vx_m1_df = vx_td_gb.nth(0) # front-month
+    vx_m2_df = vx_td_gb.nth(1) # back-month
+    vx_m4_df = vx_td_gb.nth(3) # m4
+    vx_m5_df = vx_td_gb.nth(4) # m5
+    vx_m6_df = vx_td_gb.nth(5) # m6
+    vx_m7_df = vx_td_gb.nth(6) # m7
 
-    logger.debug('vx_fm_df =\n{}'.format(vx_fm_df))
+    logger.debug('vx_fm_df =\n{}'.format(vx_m1_df))
 
     # Create custom dataframes indexed by trading day.
-    vx_continuous_df = pd.DataFrame(index=vx_pm_s.index) # short-term (front/back-month weighted)
+    vx_continuous_df = pd.DataFrame(index=vx_pm_s.index)
     logger.debug('vx_pm_s.index =\n{}'.format(vx_pm_s.index))
 
     # Calculate short-term columns.
-    vx_continuous_df['Prior-Month Expiration Date'] = vx_pm_s
-    vx_continuous_df['Front-Month Settle']          = vx_fm_df['Settle']
-    vx_continuous_df['Front-Month Expiration Date'] = vx_fm_df['Expiration Date']
-    vx_continuous_df['Back-Month Settle']           = vx_bm_df['Settle']
-    vx_continuous_df['Back-Month Expiration Date']  = vx_bm_df['Expiration Date']
-    vx_continuous_df['Roll Period']                 = count_business_days(
-            vx_continuous_df['Prior-Month Expiration Date'], vx_continuous_df['Front-Month Expiration Date'])
-    vx_continuous_df['Days Till Rollover']          = (count_business_days(
-            vx_continuous_df.index, vx_continuous_df['Front-Month Expiration Date']) - 1)
-    vx_continuous_df['Front-Month Weight']          = vx_continuous_df['Days Till Rollover'] / vx_continuous_df['Roll Period']
-    vx_continuous_df['Back-Month Weight']           = 1.0 - vx_continuous_df['Front-Month Weight']
-    vx_continuous_df['STCMVF']                      =\
-        vx_continuous_df['Front-Month Weight'] * vx_continuous_df['Front-Month Settle'] +\
-        vx_continuous_df['Back-Month Weight'] * vx_continuous_df['Back-Month Settle']
+    vx_continuous_df['Month0 Expiration Date'] = vx_pm_s
+    vx_continuous_df['Month1 Settle']          = vx_m1_df['Settle']
+    vx_continuous_df['Month1 Expiration Date'] = vx_m1_df['Expiration Date']
+    vx_continuous_df['Month2 Settle']          = vx_m2_df['Settle']
+    vx_continuous_df['Month4 Settle']          = vx_m4_df['Settle']
+    vx_continuous_df['Month5 Settle']          = vx_m5_df['Settle']
+    vx_continuous_df['Month6 Settle']          = vx_m6_df['Settle']
+    vx_continuous_df['Month7 Settle']          = vx_m7_df['Settle']
+    vx_continuous_df['Roll Period']            = count_business_days(
+            vx_continuous_df['Month0 Expiration Date'], vx_continuous_df['Month1 Expiration Date'])
+    vx_continuous_df['Days Till Rollover']     = (count_business_days(
+            vx_continuous_df.index, vx_continuous_df['Month1 Expiration Date']) - 1)
+    vx_continuous_df['ST Month1 Weight']       = vx_continuous_df['Days Till Rollover'] / vx_continuous_df['Roll Period']
+    vx_continuous_df['ST Month2 Weight']       = 1.0 - vx_continuous_df['ST Month1 Weight']
+    vx_continuous_df['MT Month4 Weight']       = (vx_continuous_df['Days Till Rollover'] / vx_continuous_df['Roll Period']) / 3.0
+    vx_continuous_df['MT Month7 Weight']       = (1.0 / 3.0) - vx_continuous_df['MT Month4 Weight']
+    vx_continuous_df['STCMVF']                 =\
+        vx_continuous_df['ST Month1 Weight'] * vx_continuous_df['Month1 Settle'] +\
+        vx_continuous_df['ST Month2 Weight'] * vx_continuous_df['Month2 Settle']
+    vx_continuous_df['MTCMVF']                 =\
+        vx_continuous_df['MT Month4 Weight'] * vx_continuous_df['Month4 Settle'] +\
+        (1.0 / 3.0) * vx_continuous_df['Month5 Settle'] +\
+        (1.0 / 3.0) * vx_continuous_df['Month6 Settle'] +\
+        vx_continuous_df['MT Month7 Weight'] * vx_continuous_df['Month7 Settle']
 
-    logger.debug('vx_continuous_df =\n{}'.format(vx_continuous_df[['Front-Month Expiration Date','Roll Period',
-        'Days Till Rollover','Front-Month Weight','Back-Month Weight']]))
+    logger.debug('vx_continuous_df =\n{}'.format(vx_continuous_df[['Month1 Expiration Date','Roll Period',
+        'Days Till Rollover','ST Month1 Weight']]))
     return(vx_continuous_df)
 #END: build_continuous_vx_dataframe
 
