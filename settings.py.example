@@ -5,7 +5,8 @@
 # 2. Fill in the variables below
 
 # Application settings.
-years      = 2
+st_years = 2
+mt_years = 5
 
 # StockTwits settings.
 # (see https://stocktwits.com/developers/docs/authentication)

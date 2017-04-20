@@ -29,8 +29,9 @@ def main():
     logger.debug('Today ({:%Y-%m-%d}) is a workday. Proceeding...'.format(cboe.now))
 
     # Setup timeframe to cover last 2 years from the most recent business day.
+    years         = max(settings.st_years, settings.mt_years)
     end_date      = (cboe.now - cboe.bday_us*(not cboe.is_business_day(cboe.now))).normalize()
-    start_date    = end_date - settings.years*365*cboe.Day()
+    start_date    = end_date - years*365*cboe.Day()
     target_period = pd.date_range(start=start_date, end=end_date, freq=cboe.bday_us)
 
     logger.debug('target_period =\n{}'.format(target_period))
@@ -141,7 +142,9 @@ def generate_st_vx_figure(vx_continuous_df):
         Dataframe generated from cboe.build_continuous_vx_dataframe with an
         added column, 'VIX', that represents VIX's values.
     """
-    years = np.ceil((vx_continuous_df.index[-1] - vx_continuous_df.index[0]).days / 365.0)
+    years  = settings.st_years
+    vix    = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now]['VIX'].dropna()
+    stcmvf = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now]['STCMVF'].dropna()
 
     # Setup a grid of sub-plots.
     fig = plt.figure(1)
@@ -149,8 +152,8 @@ def generate_st_vx_figure(vx_continuous_df):
 
     # VIX vs STCMVF
     timeseries_axes1 = plt.subplot(gs[0])
-    timeseries_axes1.plot(vx_continuous_df['VIX'], label='VIX')
-    timeseries_axes1.plot(vx_continuous_df['STCMVF'], label='STCMVF', alpha=0.75)
+    timeseries_axes1.plot(vix, label='VIX')
+    timeseries_axes1.plot(stcmvf, label='STCMVF', alpha=0.75)
     plt.setp(timeseries_axes1.get_xticklabels(), visible=False) # hide date labels on top subplot
     plt.grid(True)
     plt.ylabel('Volatility Level')
@@ -158,7 +161,7 @@ def generate_st_vx_figure(vx_continuous_df):
 
     # Percent difference between STCMVF and VIX
     timeseries_axes2 = plt.subplot(gs[2], sharex=timeseries_axes1)
-    timeseries_axes2.plot(((vx_continuous_df['STCMVF'] / vx_continuous_df['VIX']) - 1.0) * 100.0,
+    timeseries_axes2.plot(((stcmvf / vix) - 1.0) * 100.0,
             'k-')
     plt.grid(True)
     ys, ye = timeseries_axes2.get_ylim()
@@ -172,8 +175,8 @@ def generate_st_vx_figure(vx_continuous_df):
 
     # Histogram of STCMVF
     hist_axes = plt.subplot(gs[1])
-    hist_axes.hist(vx_continuous_df['VIX'].dropna(), bins='auto', label='VIX')
-    hist_axes.hist(vx_continuous_df['STCMVF'].dropna(), bins='auto', label='STCMVF', alpha=0.75)
+    hist_axes.hist(vix, bins='auto', label='VIX')
+    hist_axes.hist(stcmvf, bins='auto', label='STCMVF', alpha=0.75)
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
@@ -204,7 +207,8 @@ def generate_mt_vx_figure(vx_continuous_df):
         Dataframe generated from cboe.build_continuous_vx_dataframe with an
         added column, 'VIX', that represents VIX's values.
     """
-    years = np.ceil((vx_continuous_df.index[-1] - vx_continuous_df.index[0]).days / 365.0)
+    years  = settings.mt_years
+    mtcmvf = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now]['MTCMVF'].dropna()
 
     # Setup a grid of sub-plots.
     fig = plt.figure(1)
@@ -212,14 +216,14 @@ def generate_mt_vx_figure(vx_continuous_df):
 
     # MTCMVF
     timeseries_axes = plt.subplot(gs[0])
-    timeseries_axes.plot(vx_continuous_df['MTCMVF'], label='MTCMVF')
+    timeseries_axes.plot(mtcmvf, label='MTCMVF')
     plt.grid(True)
     plt.ylabel('Volatility Level')
     plt.title('MTCMVF {:0.0f}-Year Daily Chart'.format(years))
 
     # Histogram of MTCMVF
     hist_axes = plt.subplot(gs[1])
-    hist_axes.hist(vx_continuous_df['MTCMVF'].dropna(), bins='auto', label='MTCMVF')
+    hist_axes.hist(mtcmvf, bins='auto', label='MTCMVF')
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
