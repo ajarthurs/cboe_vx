@@ -195,7 +195,9 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
-    xclamp = np.min([data_a, data_b])
+    xclamp_a = np.min(data_a)
+    xclamp_b = np.min(data_b)
+    xclamp   = np.min([xclamp_a, xclamp_b])
     logger.debug('xs, xe (before)= {}, {}'.format(xs, xe))
     xs = np.max([xclamp, xs])
     xs = np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep # round-down to nearest xstep
