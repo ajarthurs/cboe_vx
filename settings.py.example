@@ -21,7 +21,7 @@ st_st_message        = '{} Short-term constant-maturity VIX futures (STCMVF) set
 st_st_chart_file     = 'st_chart.png'
 # Mid-term VX ETPs
 st_post_mt_cash_tags = True
-st_mt_cash_tags      = '$VXZ $XIZ $VIIZ $VIXM $TVIZ'
+st_mt_cash_tags      = '$VXZ $ZIV $VIIZ $VIXM $TVIZ'
 st_post_mt_chart     = True
 st_mt_preamble       = st_mt_cash_tags if st_post_mt_cash_tags else '(TEST)'
 st_mt_message        = '{} Mid-term constant-maturity VIX futures (MTCMVF) settled @ {:.3f} ({:+.1%}).'
