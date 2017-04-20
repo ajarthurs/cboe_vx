@@ -62,11 +62,11 @@ def main():
 
     if(st_post_st_chart):
         # Plot short-term VX data to image file.
-        generate_st_vx_figure(vx_continuous_df)
+        generate_vx_figure(vx_continuous_df, settings.st_years, 'VIX', 'STCMVF')
         plt.savefig(settings.st_st_chart_file, dpi=300)
     if(st_post_mt_chart):
         # Plot medium-term VX data to image file.
-        generate_mt_vx_figure(vx_continuous_df)
+        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VXMT', 'MTCMVF')
         plt.savefig(settings.st_mt_chart_file, dpi=300)
 
     # Get recent VX quotes.
@@ -141,7 +141,7 @@ def fetch_yahoo_ticker(ticker, index):
     return(df, success)
 #END: fetch_yahoo_ticker
 
-def generate_st_vx_figure(vx_continuous_df):
+def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     """
     Create the continuous VX figure, which plots STCMVF and VIX over time, the
     percent difference between STCMVF and VIX, and a histogram of STCMVF.
@@ -151,27 +151,32 @@ def generate_st_vx_figure(vx_continuous_df):
     vx_continuous_df : pd.DataFrame
         Dataframe generated from cboe.build_continuous_vx_dataframe with an
         added column, 'VIX', that represents VIX's values.
+
+    column_a : str
+        Name of first column in vx_continuous_df to plot.
+
+    column_b : str
+        Name of second column in vx_continuous_df to plot.
     """
-    years  = settings.st_years
-    vix    = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now]['VIX'].dropna()
-    stcmvf = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now]['STCMVF'].dropna()
+    data_a = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now][column_a].dropna()
+    data_b = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now][column_b].dropna()
 
     # Setup a grid of sub-plots.
     fig = plt.figure(1)
     gs  = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[2, 1])
 
-    # VIX vs STCMVF
+    # data_a vs data_b
     timeseries_axes1 = plt.subplot(gs[0])
-    timeseries_axes1.plot(vix, label='VIX')
-    timeseries_axes1.plot(stcmvf, label='STCMVF', alpha=0.75)
+    timeseries_axes1.plot(data_a, label=column_a)
+    timeseries_axes1.plot(data_b, label=column_b, alpha=0.75)
     plt.setp(timeseries_axes1.get_xticklabels(), visible=False) # hide date labels on top subplot
     plt.grid(True)
     plt.ylabel('Volatility Level')
     plt.title('{:0.0f}-Year Daily Chart'.format(years))
 
-    # Percent difference between STCMVF and VIX
+    # Percent difference between data_b and data_a
     timeseries_axes2 = plt.subplot(gs[2], sharex=timeseries_axes1)
-    timeseries_axes2.plot(((stcmvf / vix) - 1.0) * 100.0,
+    timeseries_axes2.plot(((data_b / data_a) - 1.0) * 100.0,
             'k-')
     plt.grid(True)
     ys, ye = timeseries_axes2.get_ylim()
@@ -181,16 +186,16 @@ def generate_st_vx_figure(vx_continuous_df):
     ye = np.sign(ye)*np.ceil(np.abs(ye)/ystep)*ystep # round-up to nearest ystep
     logger.debug('ys, ye (after)= {}, {}'.format(ys, ye))
     plt.yticks(np.arange(ys, ye, ystep)) # set rounded y-values stepped by ystep
-    plt.ylabel('STCMVF-VIX (%)')
+    plt.ylabel('{}-{} (%)'.format(column_b, column_a))
 
-    # Histogram of STCMVF
+    # Histogram of data_b
     hist_axes = plt.subplot(gs[1])
-    hist_axes.hist(vix, bins='auto', label='VIX')
-    hist_axes.hist(stcmvf, bins='auto', label='STCMVF', alpha=0.75)
+    hist_axes.hist(data_a, bins='auto', label=column_a)
+    hist_axes.hist(data_b, bins='auto', label=column_b, alpha=0.75)
     plt.grid(True)
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
-    xclamp = np.min([vix, stcmvf])
+    xclamp = np.min([data_a, data_b])
     logger.debug('xs, xe (before)= {}, {}'.format(xs, xe))
     xs = np.max([xclamp, xs])
     xs = np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep # round-down to nearest xstep
@@ -206,55 +211,7 @@ def generate_st_vx_figure(vx_continuous_df):
     plt.setp(timeseries_axes2.get_xticklabels(), rotation=60, # rotate dates along x-axis
             horizontalalignment='right')
     plt.subplots_adjust(bottom=0.2, hspace=0.1, wspace=0.3) # adjust spacing between and around sub-plots
-#END: generate_st_vx_figure
-
-def generate_mt_vx_figure(vx_continuous_df):
-    """
-    Create the continuous VX figure, which plots MTCMVF and VIX over time, the
-    percent difference between MTCMVF and VIX, and a histogram of MTCMVF.
-
-    Parameters
-    ----------
-    vx_continuous_df : pd.DataFrame
-        Dataframe generated from cboe.build_continuous_vx_dataframe with an
-        added column, 'VIX', that represents VIX's values.
-    """
-    years  = settings.mt_years
-    mtcmvf = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now]['MTCMVF'].dropna()
-
-    # Setup a grid of sub-plots.
-    fig = plt.figure(1)
-    gs  = gridspec.GridSpec(1, 2, width_ratios=[2, 1])
-
-    # MTCMVF
-    timeseries_axes = plt.subplot(gs[0])
-    timeseries_axes.plot(mtcmvf, label='MTCMVF')
-    plt.grid(True)
-    plt.ylabel('Volatility Level')
-    plt.title('MTCMVF {:0.0f}-Year Daily Chart'.format(years))
-
-    # Histogram of MTCMVF
-    hist_axes = plt.subplot(gs[1])
-    hist_axes.hist(mtcmvf, bins='auto', label='MTCMVF')
-    plt.grid(True)
-    xs, xe = hist_axes.get_xlim()
-    xstep  = 5.0
-    xclamp = np.min(mtcmvf)
-    logger.debug('xs, xe (before)= {}, {}'.format(xs, xe))
-    xs = np.max([xclamp, xs])
-    xs = np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep # round-down to nearest xstep
-    xe = np.sign(xe)*np.ceil(np.abs(xe)/xstep)*xstep # round-up to nearest xstep
-    logger.debug('xs, xe (after)= {}, {}'.format(xs, xe))
-    plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by 5
-    plt.xlabel('Volatility Level')
-    plt.ylabel('Occurrences')
-    plt.title('Histogram')
-
-    # Minor adjustments
-    plt.setp(timeseries_axes.get_xticklabels(), rotation=60, # rotate dates along x-axis
-            horizontalalignment='right')
-    plt.subplots_adjust(bottom=0.2, hspace=0.1, wspace=0.3) # adjust spacing between and around sub-plots
-#END: generate_mt_vx_figure
+#END: generate_vx_figure
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
     """
