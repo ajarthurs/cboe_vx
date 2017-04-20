@@ -34,6 +34,15 @@ def main():
 
     logger.debug('target_period =\n{}'.format(target_period))
 
+    # StockTwits settings.
+    st_dry_run        = False
+    st_post_cash_tags = True
+    st_cash_tags      = '$VXX $XIV $SVXY $TVIX $UVXY'
+    st_post_chart     = True
+    chart_file        = 'chart.png'
+    st_preamble       = st_cash_tags if st_post_cash_tags else '(TEST)'
+    st_message        = '{} Short-term constant-maturity VIX futures settled @ {:.3f} ({:+.1%}).'
+
     # Load VX contracts.
     vx_contract_df = cboe.fetch_vx_contracts(target_period)
     logger.debug('vx_contract_df =\n{}'.format(vx_contract_df))
@@ -50,9 +59,10 @@ def main():
     logger.debug('vix_df =\n{}'.format(vix_df))
 
     # Plot to stcmvf.png
-    p = vx_continuous_df[['VIX','STCMVF']].plot()
-    plt.savefig('stcmvf.png')
-    logger.debug('plot = {}'.format(p))
+    if(st_post_chart):
+        p = vx_continuous_df[['VIX','STCMVF']].plot()
+        plt.savefig(chart_file)
+        logger.debug('plot = {}'.format(p))
 
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
@@ -64,15 +74,16 @@ def main():
     logger.debug('vx_today =\n{}'.format(vx_today))
 
     # Post to StockTwits.
-    #st_message = '$VXX $XIV $SVXY $TVIX $UVXY Short-term constant-maturity VIX futures settled @ ' +\
-    st_message = 'Short-term constant-maturity VIX futures settled @ ' +\
-            '{:.3f} ({:+.1%}).'.format(stcmvf_today, stcmvf_percent)
+    st_message = st_message.format(st_preamble, stcmvf_today, stcmvf_percent)
     logger.debug('st_message = {}'.format(st_message))
-    #post_to_stocktwits('my-StockTwits-access-token', st_message, attachment='stcmvf.png', dry_run=True)
-    post_to_stocktwits(st_access_token, st_message,
-            attachment='stcmvf.png',
-            #dry_run=False)
-            dry_run=True)
+
+    if(st_post_chart):
+        st_attachment = chart_file
+        logger.debug('Posting message with {}.'.format(chart_file))
+    else:
+        st_attachment = None
+    post_to_stocktwits(st_access_token, st_message, attachment=st_attachment,
+            dry_run=st_dry_run)
 #END: main
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
