@@ -22,13 +22,14 @@ bday_us     = CDay(calendar=calendar_us)
 now         = pd.to_datetime('now').tz_localize('UTC')
 
 # References to CBOE's historical futures data.
-cboe_historical_base_url = 'http://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
+cboe_historical_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
 cboe_base_millennium     = 2000
 #                  J    F    M    A    M    J    J    A    S    O    N    D
 #                  a    e    a    p    a    u    u    u    e    c    o    e
 #                  n    b    r    r    y    n    l    g    p    t    v    c
 month_code = ['', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
 #             0    1    2    3    4    5    6    7    8    9   10   11   12
+cboe_index = {'VXMT' : 'vxmtdailyprices.csv'}
 
 # Time when CBOE updates historical futures data.
 cboe_historical_update_time_str = '10:00' # Chicago time
@@ -657,6 +658,36 @@ def build_continuous_vx_dataframe(vx_contract_df):
         'Days Till Rollover','ST Month1 Weight']]))
     return(vx_continuous_df)
 #END: build_continuous_vx_dataframe
+
+def fetch_index(index):
+    """
+    Retrieve data of a CBOE index.
+
+    Parameters
+    ----------
+    index : str
+        Name of the CBOE index to fetch. Must be one of the following:
+        'VXMT'
+
+    Returns
+    -------
+    pd.DataFrame
+        Index data.
+    """
+    try:
+        index_df = pd.read_csv('{}/{}'.format(cboe_historical_base_url, cboe_index[index]),
+                skiprows=2, header=1, names=['Date', 'Open', 'High', 'Low', 'Close'])
+        logger.debug('Fetched {} data.'.format(index))
+        # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
+        index_df['Date'] = pd.to_datetime(index_df['Date'],
+                format='%m/%d/%Y').apply(lambda x: x.tz_localize('UTC'))
+        index_df['Date'] = pd.DatetimeIndex(index_df['Date']).normalize()
+        index_df = index_df.set_index(index_df['Date'], drop=False)
+    except:
+        logger.exception('Failed to download {} data.'.format(index))
+        raise
+    return(index_df)
+#END: fetch_index
 
 def test_plot():
     """Test unit that plots STCMVF and VIX over time."""
