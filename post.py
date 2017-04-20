@@ -65,7 +65,7 @@ def main():
         generate_vx_figure(vx_continuous_df, settings.st_years, 'VIX', 'STCMVF')
         plt.savefig(settings.st_st_chart_file, dpi=300)
     if(st_post_mt_chart):
-        # Plot medium-term VX data to image file.
+        # Plot mid-term VX data to image file.
         generate_vx_figure(vx_continuous_df, settings.mt_years, 'VXMT', 'MTCMVF')
         plt.savefig(settings.st_mt_chart_file, dpi=300)
 

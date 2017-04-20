@@ -19,10 +19,10 @@ st_post_st_chart     = True
 st_st_preamble       = st_st_cash_tags if st_post_st_cash_tags else '(TEST)'
 st_st_message        = '{} Short-term constant-maturity VIX futures (STCMVF) settled @ {:.3f} ({:+.1%}).'
 st_st_chart_file     = 'st_chart.png'
-# Medium-term VX ETPs
+# Mid-term VX ETPs
 st_post_mt_cash_tags = True
 st_mt_cash_tags      = '$VXZ $XIZ $VIIZ $VIXM $TVIZ'
 st_post_mt_chart     = True
 st_mt_preamble       = st_mt_cash_tags if st_post_mt_cash_tags else '(TEST)'
-st_mt_message        = '{} Medium-term constant-maturity VIX futures (MTCMVF) settled @ {:.3f} ({:+.1%}).'
+st_mt_message        = '{} Mid-term constant-maturity VIX futures (MTCMVF) settled @ {:.3f} ({:+.1%}).'
 st_mt_chart_file     = 'mt_chart.png'
