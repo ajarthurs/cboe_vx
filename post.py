@@ -168,7 +168,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     gs  = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[2, 1])
 
     # data_a vs data_b
-    timeseries_axes1 = plt.subplot(gs[0])
+    timeseries_axes1 = plt.subplot(gs[0, 0])
     timeseries_axes1.plot(data_a, label=column_a)
     timeseries_axes1.plot(data_b, label=column_b, alpha=0.75)
     plt.setp(timeseries_axes1.get_xticklabels(), visible=False) # hide date labels on top subplot
@@ -177,7 +177,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     plt.title('{:0.0f}-Year Daily Chart'.format(years))
 
     # Percent difference between data_b and data_a
-    timeseries_axes2 = plt.subplot(gs[2], sharex=timeseries_axes1)
+    timeseries_axes2 = plt.subplot(gs[1, 0], sharex=timeseries_axes1)
     timeseries_axes2.plot(((data_b / data_a) - 1.0) * 100.0,
             'k-')
     plt.grid(True)
@@ -191,7 +191,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     plt.ylabel('{}-{} (%)'.format(column_b, column_a))
 
     # Histograms
-    hist_axes = plt.subplot(gs[1])
+    hist_axes = plt.subplot(gs[0, 1])
     hist_axes.hist(data_a, bins='auto', label=column_a)
     hist_axes.hist(data_b, bins='auto', label=column_b, alpha=0.75)
     plt.grid(True)
