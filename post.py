@@ -1,7 +1,6 @@
 #!/usr/bin/python
-#
-# Calculate the daily short-term VIX futures value and
-# post value to StockTwits.
+
+"""Calculate, chart, and post STCMVF and MTCMVF to StockTwits."""
 
 import settings
 import cboe
@@ -28,7 +27,7 @@ def main():
         sys.exit()
     logger.debug('Today ({:%Y-%m-%d}) is a workday. Proceeding...'.format(cboe.now))
 
-    # Setup timeframe to cover last 2 years from the most recent business day.
+    # Setup timeframe to cover last several years from the most recent business day.
     years         = max(settings.st_years, settings.mt_years)
     end_date      = (cboe.now - cboe.bday_us*(not cboe.is_business_day(cboe.now))).normalize()
     start_date    = end_date - years*365*cboe.Day()
@@ -143,14 +142,17 @@ def fetch_yahoo_ticker(ticker, index):
 
 def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     """
-    Create the continuous VX figure, which plots STCMVF and VIX over time, the
-    percent difference between STCMVF and VIX, and a histogram of STCMVF.
+    Create the continuous VX figure, which plots column A and column B over time, the
+    percent difference between the two, and their histograms.
 
     Parameters
     ----------
     vx_continuous_df : pd.DataFrame
         Dataframe generated from cboe.build_continuous_vx_dataframe with an
         added column, 'VIX', that represents VIX's values.
+
+    years : int
+        Number of years over which to plot and sample.
 
     column_a : str
         Name of first column in vx_continuous_df to plot.
@@ -188,7 +190,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     plt.yticks(np.arange(ys, ye, ystep)) # set rounded y-values stepped by ystep
     plt.ylabel('{}-{} (%)'.format(column_b, column_a))
 
-    # Histogram of data_b
+    # Histograms
     hist_axes = plt.subplot(gs[1])
     hist_axes.hist(data_a, bins='auto', label=column_a)
     hist_axes.hist(data_b, bins='auto', label=column_b, alpha=0.75)
