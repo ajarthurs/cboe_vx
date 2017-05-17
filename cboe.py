@@ -714,9 +714,9 @@ def test_plot():
     logger.addHandler(con)
 
     # Setup timeframe to cover last 2 years from the most recent business day.
-    timeframe     = 2*200
+    years         = 12
     end_date      = (now - bday_us*(not is_business_day(now))).normalize()
-    start_date    = end_date - timeframe*bday_us
+    start_date    = end_date - years*365*Day()
     target_period = pd.date_range(start=start_date, end=end_date, freq=bday_us)
 
     logger.debug('target_period =\n{}'.format(target_period))
