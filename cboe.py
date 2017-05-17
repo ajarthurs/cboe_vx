@@ -732,11 +732,19 @@ def test_plot():
     # Build dataframe of continuous VX data.
     vx_continuous_df = build_continuous_vx_dataframe(vx_contract_df)
 
-    # Fetch VIX daily quotes from Yahoo! Finance.
-    vix_df = web.DataReader('^VIX', 'yahoo',
-            start=vx_continuous_df.index[0], end=vx_continuous_df.index[-1])
-    vix_df = vix_df.tz_localize('UTC') # make dates timezone-aware
-    vx_continuous_df['VIX'] = vix_df['Adj Close']
+    ## Fetch VIX daily quotes from Yahoo! Finance.
+    #vix_df = web.DataReader('^VIX', 'yahoo',
+    #        start=vx_continuous_df.index[0], end=vx_continuous_df.index[-1])
+    #vix_df = vix_df.tz_localize('UTC') # make dates timezone-aware
+    #vx_continuous_df['VIX'] = vix_df['Adj Close']
+
+    # Fetch VIX daily quotes from CBOE
+    vix_df = fetch_index('VIX')
+    vx_continuous_df['VIX'] = vix_df['Close']
+
+    # Fetch VXMT daily quotes from CBOE
+    vix_df = fetch_index('VXMT')
+    vx_continuous_df['VXMT'] = vix_df['Close']
 
     # Plot
     vx_continuous_df[['VIX','STCMVF']].plot()
