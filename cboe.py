@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from holiday import USMarketHolidayCalendar
 from pandas.tseries.offsets import CDay,Day,Week,MonthBegin,MonthEnd
+import pytz
 import calendar
 import re
 import pickle
@@ -23,6 +24,7 @@ now         = pd.to_datetime('now').tz_localize('UTC')
 # References to CBOE's historical futures data.
 cboe_historical_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
 cboe_base_millennium     = 2000
+cboe_vx_adj_date         = pd.datetime(2007, 3, 23, tzinfo=pytz.timezone('UTC'))
 #                  J    F    M    A    M    J    J    A    S    O    N    D
 #                  a    e    a    p    a    u    u    u    e    c    o    e
 #                  n    b    r    r    y    n    l    g    p    t    v    c
@@ -231,7 +233,7 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
         try:
             # (example: CFE_F16_VX.csv for the January 2016 contract)
             vx_contract = pd.read_csv(
-                '{}/CFE_{}{}_VX.csv'.format(cboe_historical_base_url, month_code[monthyear.month],
+                    '{}/CFE_{}{:02}_VX.csv'.format(cboe_historical_base_url, month_code[monthyear.month],
                     monthyear.year - cboe_base_millennium),
                 header=1,
                 names=['Trade Date','Futures','Open','High','Low','Close','Settle',
@@ -251,6 +253,13 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
 
         # Discard entries at expiration and beyond.
         vx_contract = vx_contract[vx_contract['Trade Date'] < vx_expdate]
+
+        # Adjust prices prior to March 23 2007 (divide by 10).
+        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Settle'] /= 10.0
+        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'High']   /= 10.0
+        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Low']    /= 10.0
+        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Open']   /= 10.0
+        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Close']  /= 10.0
 
         logger.debug('Retrieved contract {} from CBOE.'.format(contract_name))
 
