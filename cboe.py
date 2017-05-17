@@ -718,10 +718,9 @@ def test_plot():
     logger.addHandler(fh)
     logger.addHandler(con)
 
-    # Setup timeframe to cover last 2 years from the most recent business day.
-    years         = 12
+    # Setup timeframe to cover from 1/1/2006 to the most recent business day.
     end_date      = (now - bday_us*(not is_business_day(now))).normalize()
-    start_date    = end_date - years*365*Day()
+    start_date    = pd.datetime(2006, 1, 1, tzinfo=pytz.timezone('UTC'))
     target_period = pd.date_range(start=start_date, end=end_date, freq=bday_us)
 
     logger.debug('target_period =\n{}'.format(target_period))
