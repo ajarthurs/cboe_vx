@@ -366,8 +366,12 @@ def fetch_vx_daily_settlement():
         logger.exception('Failed to read monthly contract expiration dates.')
         raise
 
+    logger.debug('monthly_vx_eod_values(unfiltered) =\n{}'.format(monthly_vx_eod_values))
+
     # Filter out expired contracts.
-    monthly_vx_eod_values = monthly_vx_eod_values[monthly_vx_eod_values['Expiration Date'] > now]
+    current_datetime = cboe_historical_update_time if(now >= cboe_historical_update_time) else\
+            (cboe_historical_update_time - bday_us)
+    monthly_vx_eod_values = monthly_vx_eod_values[monthly_vx_eod_values['Expiration Date'] > current_datetime]
 
     logger.debug('monthly_vx_eod_values =\n{}'.format(monthly_vx_eod_values))
 
