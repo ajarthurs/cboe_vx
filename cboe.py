@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from holiday import USMarketHolidayCalendar
 from pandas.tseries.offsets import CDay,Day,Week,MonthBegin,MonthEnd
+from pandas import ExcelWriter
 import pytz
 import calendar
 import re
@@ -736,6 +737,11 @@ def test_plot():
     # Plot
     vx_continuous_df[['VIX','STCMVF']].plot()
     plt.savefig('st.png')
+
+    # Write to Excel
+    writer = ExcelWriter('vf.xlsx')
+    vx_continuous_df.to_excel(writer)
+    writer.save()
 
     # Drop into a Python shell with all definitions.
     code.interact(local=dict(globals(), **locals()))
