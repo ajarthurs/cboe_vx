@@ -44,10 +44,14 @@ def main():
     logger.debug('vx_continuous_df =\n{}'.format(vx_continuous_df))
 
     # Add 'VIX' column to continuous dataframe.
-    (vix_df, success) = fetch_yahoo_ticker('^VIX', vx_continuous_df.index)
-    st_post_st_chart  = settings.st_post_st_chart and success
+    try:
+        vix_df = cboe.fetch_index('VIX')
+        success = True
+    except:
+        success = False
+    st_post_st_chart   = settings.st_post_st_chart and success
     if(success):
-        vx_continuous_df['VIX'] = vix_df['Adj Close']
+        vx_continuous_df['VIX'] = vix_df['Close']
 
     # Add 'VXMT' column to continuous dataframe.
     try:
