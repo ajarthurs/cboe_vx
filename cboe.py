@@ -31,7 +31,7 @@ cboe_vx_adj_date         = pd.datetime(2007, 3, 23, tzinfo=pytz.timezone('UTC'))
 #                  n    b    r    r    y    n    l    g    p    t    v    c
 month_code = ['', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
 #             0    1    2    3    4    5    6    7    8    9   10   11   12
-cboe_index = {'VXMT' : 'vxmtdailyprices.csv'}
+cboe_index = {'VIX' : 'vixcurrent.csv', 'VXMT' : 'vxmtdailyprices.csv'}
 
 # Time when CBOE updates historical futures data.
 cboe_historical_update_time_str = '10:00' # Chicago time
