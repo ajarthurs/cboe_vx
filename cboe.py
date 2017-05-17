@@ -420,7 +420,7 @@ def is_cboe_cache_current(contract, expdate, cache_path):
         # Contract is not cached; therefore, cache is not up-to-date.
         is_current = False
     return(is_current)
-#END: is_cache_current
+#END: is_cboe_cache_current
 
 def get_vx_expiration_date(monthyear):
     """
