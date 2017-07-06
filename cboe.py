@@ -690,6 +690,12 @@ def fetch_index(index):
     try:
         index_df = pd.read_csv('{}/{}'.format(cboe_historical_base_url, cboe_index[index]),
                 skiprows=2, header=1, names=['Date', 'Open', 'High', 'Low', 'Close'])
+        # Fetch today's data from Google Finance
+        google = pd.read_html('https://www.google.com/finance/historical?q=INDEXCBOE%3A{}'.format(index),
+                match='Date', header=0)
+        last_entry = google[0].iloc[0]
+        index_df.append(pd.DataFrame([dict(Date=last_entry['Date'], Open=last_entry['Open'], High=last_entry['High'],
+            Low=last_entry['Low'], Close=last_entry['Close'])]))
         logger.debug('Fetched {} data.'.format(index))
         # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
         index_df['Date'] = pd.to_datetime(index_df['Date'],
