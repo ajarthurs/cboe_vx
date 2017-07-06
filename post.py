@@ -181,10 +181,12 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     plt.title('{:0.0f}-Year Daily Chart'.format(years))
 
     # Percent difference between data_b and data_a
+    pct_diff = ((data_b / data_a) - 1.0) * 100.0
     timeseries_axes2 = plt.subplot(gs[1, 0], sharex=timeseries_axes1)
-    timeseries_axes2.plot(((data_b / data_a) - 1.0) * 100.0,
-            'k-')
+    timeseries_axes2.plot(pct_diff, 'k-')
     plt.grid(True)
+    xs, xe = timeseries_axes2.get_xlim()
+    logger.debug('xs, xe = {}, {}'.format(xs, xe))
     ys, ye = timeseries_axes2.get_ylim()
     ystep  = 10.0
     logger.debug('ys, ye (before)= {}, {}'.format(ys, ye))
@@ -193,6 +195,8 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     logger.debug('ys, ye (after)= {}, {}'.format(ys, ye))
     plt.yticks(np.arange(ys, ye, ystep)) # set rounded y-values stepped by ystep
     plt.ylabel('{}-{} (%)'.format(column_b, column_a))
+    plt.annotate('{:0.1f}%'.format(pct_diff[-1]), xy=(pct_diff.index[-1], pct_diff[-1]), xytext=(xe+(xe-xs)*0.03, pct_diff[-1]),
+            verticalalignment='center', arrowprops=dict(arrowstyle='-'))
 
     # Histograms
     hist_axes = plt.subplot(gs[0, 1])
