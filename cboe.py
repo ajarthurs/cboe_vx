@@ -688,20 +688,28 @@ def fetch_index(index):
         Index data.
     """
     try:
+        import urllib
+        from bs4 import BeautifulSoup
+
         index_df = pd.read_csv('{}/{}'.format(cboe_historical_base_url, cboe_index[index]),
                 skiprows=2, header=1, names=['Date', 'Open', 'High', 'Low', 'Close'])
         # Fetch today's data from Google Finance
-        google = pd.read_html('https://www.google.com/finance/historical?q=INDEXCBOE%3A{}'.format(index),
-                match='Date', header=0)
-        last_entry = google[0].iloc[0]
-        index_df.append(pd.DataFrame([dict(Date=last_entry['Date'], Open=last_entry['Open'], High=last_entry['High'],
-            Low=last_entry['Low'], Close=last_entry['Close'])]))
-        logger.debug('Fetched {} data.'.format(index))
+        google_page = urllib.request.urlopen('https://www.google.com/finance?q=INDEXCBOE%3A{}'.format(index))
+        google_soup = BeautifulSoup(google_page)
+        last_entry = pd.DataFrame([
+            dict(
+                Date='{:%m/%d/%Y}'.format(now), Open=np.nan, High=np.nan, Low=np.nan,
+                Close=float(google_soup.find('span', class_='pr').span.string)
+                )
+            ])
+        index_df = index_df.append(last_entry)
+        logger.debug('Appending to dataframe:\n{}'.format(last_entry))
         # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
         index_df['Date'] = pd.to_datetime(index_df['Date'],
                 format='%m/%d/%Y').apply(lambda x: x.tz_localize('UTC'))
         index_df['Date'] = pd.DatetimeIndex(index_df['Date']).normalize()
         index_df = index_df.set_index(index_df['Date'], drop=False)
+        logger.debug('Fetched {} data:\n{}'.format(index, index_df))
     except:
         logger.exception('Failed to download {} data.'.format(index))
         raise
