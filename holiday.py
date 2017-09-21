@@ -13,8 +13,6 @@ class USMarketHolidayCalendar(AbstractHolidayCalendar):
         USMemorialDay,
         Holiday('July 4th', month=7, day=4, observance=nearest_workday),
         USLaborDay,
-        USColumbusDay,
-        Holiday('Veterans Day', month=11, day=11, observance=nearest_workday),
         USThanksgivingDay,
         Holiday('Christmas', month=12, day=25, observance=nearest_workday)
     ]
