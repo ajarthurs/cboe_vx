@@ -159,7 +159,7 @@ def fetch_vx_contracts(period, force_update=False):
     vx_contract_df = vx_contract_df.dropna()
 
     # Get the most recent business day.
-    post_date = (now - bday_us*(not is_business_day(now))).normalize()
+    post_date = (now - bday_us*(not is_business_day(today))).normalize()
     if(now < cboe_daily_update_time):
         post_date = post_date - bday_us
     logger.debug('post_date = {:%Y-%m-%d}'.format(post_date))
@@ -734,7 +734,7 @@ def test_plot():
     logger.addHandler(con)
 
     # Setup timeframe to cover from 1/1/2006 to the most recent business day.
-    end_date      = (now - bday_us*(not is_business_day(now))).normalize()
+    end_date      = (now - bday_us*(not is_business_day(today))).normalize()
     start_date    = pd.datetime(2006, 1, 1, tzinfo=pytz.timezone('UTC'))
     target_period = pd.date_range(start=start_date, end=end_date, freq=bday_us)
 

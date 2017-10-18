@@ -22,10 +22,10 @@ logger = logging.getLogger('post')
 
 def main():
     # Is today a business day? If not, quit.
-    if(not cboe.is_business_day(cboe.now)):
-        logger.debug('Today ({:%Y-%m-%d}) is a non-workday. Aborting...'.format(cboe.now))
+    if(not cboe.is_business_day(cboe.today)):
+        logger.debug('Today ({:%Y-%m-%d}) is a non-workday. Aborting...'.format(cboe.today))
         sys.exit()
-    logger.debug('Today ({:%Y-%m-%d}) is a workday. Proceeding...'.format(cboe.now))
+    logger.debug('Today ({:%Y-%m-%d}) is a workday. Proceeding...'.format(cboe.today))
 
     # Setup timeframe to cover last several years from the most recent business day.
     years         = max(settings.st_years, settings.mt_years)
