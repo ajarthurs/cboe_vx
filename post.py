@@ -6,13 +6,16 @@ import settings
 import cboe
 import pandas as pd
 import pandas_datareader.data as web
+from pandas import ExcelWriter
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
 import requests
 import ssl
 import mimetypes
+import pickle
 import sys
+import pytz
 import logging
 import logging.config
 
@@ -71,6 +74,9 @@ def main():
         # Plot mid-term VX data to image file.
         generate_vx_figure(vx_continuous_df, settings.mt_years, 'VXMT', 'MTCMVF')
         plt.savefig(settings.st_mt_chart_file, dpi=300)
+
+    # Dump continuous futures dataframe to Excel.
+    write_vx_continuous_df_to_excel(vx_continuous_df)
 
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
@@ -224,6 +230,61 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
             horizontalalignment='right')
     plt.subplots_adjust(bottom=0.2, hspace=0.1, wspace=0.3) # adjust spacing between and around sub-plots
 #END: generate_vx_figure
+
+def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_dir='.data'):
+    """
+    Dump VIX futures continuous dataframe to an Excel file with formatting. Data is
+    cached (see {cache_dir}/vx_continuous_df.p) and reused on each run, eliminating
+    the need to rebuild old data.
+
+    Parameters
+    ----------
+    vx_continuous_df : pd.Dataframe
+        Dataframe containing the VIX futures continuous data.
+
+    filename : str
+        Name of Excel file to write to.
+
+    cache_dir : str
+        Directory in which to cache the dataframe.
+    """
+    logger.debug('vx_continuous_df = \n{}'.format(vx_continuous_df))
+    writer = ExcelWriter(filename, engine='openpyxl')
+    cache_path = '{}/vx_continuous_df.p'.format(cache_dir)
+    try:
+        # Load continuous futures dataframe from cache.
+        cache_vx_continuous_df = pickle.load(open(cache_path, 'rb'))
+    except:
+        cache_vx_continuous_df = vx_continuous_df
+    all_vx_continuous_df = pd.concat([cache_vx_continuous_df, vx_continuous_df])
+    logger.debug('all_vx_continuous_df = \n{}'.format(all_vx_continuous_df))
+    try:
+        # Cache continuous futures dataframe.
+        pickle.dump(all_vx_continuous_df, open(cache_path, 'wb'))
+        logger.debug('Cached VIX futures continuous dataframe in ({}).'.format(cache_path))
+    except:
+        logger.exception('Failed to cache VIX futures continuous dataframe.')
+    all_vx_continuous_df.to_excel(writer, sheet_name='Continuous')
+    sheet = writer.sheets['Continuous']
+    # Set column widths.
+    for col in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S'):
+        sheet.column_dimensions[col].width = 25 # index/trade date
+    # Set column formats.
+    for col in ('C', 'E', 'F', 'G', 'H', 'I', 'P', 'Q'):
+        for c in sheet[col]:
+            c.number_format = '0.000'
+    for col in ('J', 'K'):
+        for c in sheet[col]:
+            c.number_format = '0'
+    for col in ('L', 'M', 'N', 'O'):
+        for c in sheet[col]:
+            c.number_format = '0.0%'
+    for col in ('R', 'S'):
+        for c in sheet[col]:
+            c.number_format = '0.00'
+    writer.save()
+    logger.debug('Dumped continuous futures dataframe to ({}).'.format(filename))
+#END: write_vx_continuous_df_to_excel
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
     """
