@@ -342,5 +342,48 @@ def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
     logger.info('Posted message: ' + message)
 #END: post_to_stocktwits
 
+def build_vx_continuous_df_cache(cache_dir='.data'):
+    """
+    Build and cache VIX futures continuous dataframe.
+    """
+    # Setup timeframe to cover lifetime of VIX futures.
+    end_date      = (cboe.now - cboe.bday_us*(not cboe.is_business_day(cboe.now))).normalize()
+    start_date    = pd.datetime(2006, 1, 1, tzinfo=pytz.timezone('UTC'))
+    target_period = pd.date_range(start=start_date, end=end_date, freq=cboe.bday_us)
+
+    logger.debug('target_period =\n{}'.format(target_period))
+
+    # Load VX contracts.
+    vx_contract_df = cboe.fetch_vx_contracts(target_period)
+    logger.debug('vx_contract_df =\n{}'.format(vx_contract_df))
+
+    # Build dataframe of continuous VX data.
+    vx_continuous_df = cboe.build_continuous_vx_dataframe(vx_contract_df)
+    logger.debug('vx_continuous_df =\n{}'.format(vx_continuous_df))
+
+    # Add 'VIX' column to continuous dataframe.
+    try:
+        vix_df = cboe.fetch_index('VIX')
+    except:
+        logger.exception('Failed to fetch index VIX.')
+    vx_continuous_df['VIX'] = vix_df['Close']
+
+    # Add 'VXMT' column to continuous dataframe.
+    try:
+        vxmt_df = cboe.fetch_index('VXMT')
+    except:
+        logger.exception('Failed to fetch index VXMT.')
+    vx_continuous_df['VXMT'] = vxmt_df['Close']
+
+    # Cache dataframe.
+    cache_path = '{}/vx_continuous_df.p'.format(cache_dir)
+    try:
+        # Cache continuous futures dataframe.
+        pickle.dump(vx_continuous_df, open(cache_path, 'wb'))
+        logger.debug('Cached VIX futures continuous dataframe in ({}).'.format(cache_path))
+    except:
+        logger.exception('Failed to cache VIX futures continuous dataframe.')
+#END: build_vx_continuous_df_cache
+
 if(__name__ == '__main__'):
     main()
