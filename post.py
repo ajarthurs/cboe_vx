@@ -113,43 +113,6 @@ def main():
             dry_run=settings.st_dry_run)
 #END: main
 
-def fetch_yahoo_ticker(ticker, index):
-    """
-    Retrieve data for ticker over a given period from Yahoo! Finance. Note
-    that Yahoo! Finance does NOT include today's data.
-
-    Parameters
-    ----------
-    ticker : str
-        Stock/ETF/Index ticker.
-
-    index : pd.DatetimeIndex
-        Period over which to fetch the data.
-
-    Returns
-    -------
-    (pd.DataFrame, bool)
-        Ticker data from Yahoo! Finance and whether or not successful. Columns provided are:
-            Open
-            High
-            Low
-            Close
-            Volume
-            Adj Close
-    """
-    try:
-        # Fetch daily quotes from Yahoo! Finance.
-        df = web.DataReader(ticker, 'yahoo', start=index[0], end=index[-1])
-        df = df.tz_localize('UTC') # make dates timezone-aware
-        logger.debug('df =\n{}'.format(df))
-        success = True
-    except:
-        logger.warning('Failed to download {} values from Yahoo! Finance.'.format(ticker))
-        df = None
-        success = False
-    return(df, success)
-#END: fetch_yahoo_ticker
-
 def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     """
     Create the continuous VX figure, which plots column A and column B over time, the
