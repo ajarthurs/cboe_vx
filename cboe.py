@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 calendar_us = USMarketHolidayCalendar()
 bday_us     = CDay(calendar=calendar_us)
 now         = pd.to_datetime('now', utc=True)
+today       = now.tz_convert('America/Chicago').normalize()
 
 # References to CBOE's historical futures data.
 cboe_historical_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
