@@ -11,7 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_credentials(application, client_secret_file='client_secret.json', scopes='https://www.googleapis.com/auth/drive.metadata.readonly', store_dir='.store', consent=True):
+def get_credentials(application, client_secret_file='client_secret.json', scopes='https://www.googleapis.com/auth/drive.metadata.readonly', store_dir='.store', consent=True, force_consent=False):
     """Get valid user credentials from storage.
 
     Parameters
@@ -32,6 +32,10 @@ def get_credentials(application, client_secret_file='client_secret.json', scopes
         Open user's default web browser for consent, if needed. If False,
         raise an error when consent is needed.
 
+    force_consent : bool
+        Force user to consent. This option is useful if the user wants to
+        change the client ID's scope.
+
     Returns
     -------
     oauth2client.client.Credentials
@@ -47,7 +51,7 @@ def get_credentials(application, client_secret_file='client_secret.json', scopes
     store_file = '{}/vix_futures_poster.json'.format(store_dir)
     store = Storage(store_file)
     credentials = store.get()
-    if(not credentials or credentials.invalid):
+    if(force_consent or not credentials or credentials.invalid):
         if(consent):
             # Refresh token.
             flow = client.flow_from_clientsecrets(client_secret_file, scopes)
@@ -78,7 +82,8 @@ def test_credentials():
     logger.addHandler(con)
 
     # Authorize
-    credentials = get_credentials('VIX Futures Data', scopes='https://www.googleapis.com/auth/drive.file')
+    #credentials = get_credentials('VIX Futures Data', scopes='https://www.googleapis.com/auth/drive.file')
+    credentials = get_credentials('VIX Futures Data', scopes='https://www.googleapis.com/auth/drive', force_consent=True)
     if(not credentials):
         raise Exception('Failed to retrieve credentials')
 
