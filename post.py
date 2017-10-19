@@ -324,7 +324,7 @@ def post_to_stocktwits(access_token, message, link=None, attachment=None, dry_ru
         Token generated from StockTwits used for authentication.
 
     message : str
-        Test message to be posted.
+        Message to be posted.
 
     link : str
         Link to add at end of message.
