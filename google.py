@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_credentials(application, client_secret_file='client_secret.json', scopes='https://www.googleapis.com/auth/drive.metadata.readonly', store_dir='.store'):
+def get_credentials(application, client_secret_file='client_secret.json', scopes='https://www.googleapis.com/auth/drive.metadata.readonly', store_dir='.store', consent=True):
     """Get valid user credentials from storage.
 
     Parameters
@@ -28,6 +28,10 @@ def get_credentials(application, client_secret_file='client_secret.json', scopes
 
     store_dir : str
         Name of directory containing credentials.
+
+    consent : bool
+        Open user's default web browser for consent, if needed. If False,
+        raise an error when consent is needed.
 
     Returns
     -------
@@ -45,11 +49,15 @@ def get_credentials(application, client_secret_file='client_secret.json', scopes
     store = Storage(store_file)
     credentials = store.get()
     if(not credentials or credentials.invalid):
-        # Refresh token.
-        flow = client.flow_from_clientsecrets(client_secret_file, scopes)
-        flow.user_agent = application
-        credentials = tools.run_flow(flow, store)
-        logger.debug('Stored credentials in ({}).'.format(store_file))
+        if(consent):
+            # Refresh token.
+            flow = client.flow_from_clientsecrets(client_secret_file, scopes)
+            flow.user_agent = application
+            credentials = tools.run_flow(flow, store)
+            logger.debug('Stored credentials in ({}).'.format(store_file))
+        else:
+            # Warn user that their consent is required.
+            logger.error('Consent is required for authorization.')
     else:
         logger.debug('Fetched credentials from ({}).'.format(store_file))
     return(credentials)
@@ -72,6 +80,8 @@ def test_credentials():
 
     # Authorize
     credentials = get_credentials('VIX Futures Data', scopes='https://www.googleapis.com/auth/drive.file')
+    if(not credentials):
+        raise Exception('Failed to retrieve credentials')
 
     # Drop into a Python shell with all definitions.
     code.interact(local=dict(globals(), **locals()))
