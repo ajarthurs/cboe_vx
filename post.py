@@ -158,6 +158,10 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     plt.grid(True)
     plt.ylabel('Volatility Level')
     plt.title('{:0.0f}-Year Daily Chart'.format(years))
+    xs, xe = timeseries_axes1.get_xlim()
+    logger.debug('xs, xe = {}, {}'.format(xs, xe))
+    plt.annotate('{:0.3f}'.format(data_b[-1]), xy=(data_b.index[-1], data_b[-1]), xytext=(xe+(xe-xs)*0.03, data_b[-1]),
+            verticalalignment='center', arrowprops=dict(arrowstyle='-', color='#ff9f4b'), color='#ff9f4b')
 
     # Percent difference between data_b and data_a
     pct_diff = ((data_b / data_a) - 1.0) * 100.0
@@ -201,7 +205,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     # Minor adjustments
     plt.setp(timeseries_axes2.get_xticklabels(), rotation=60, # rotate dates along x-axis
             horizontalalignment='right')
-    plt.subplots_adjust(bottom=0.2, hspace=0.1, wspace=0.3) # adjust spacing between and around sub-plots
+    plt.subplots_adjust(bottom=0.17, hspace=0.1, wspace=0.62) # adjust spacing between and around sub-plots
 #END: generate_vx_figure
 
 def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_dir='.data', dry_run=False):
