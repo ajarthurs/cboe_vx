@@ -76,10 +76,10 @@ def main():
         plt.savefig(settings.st_mt_chart_file, dpi=300)
 
     # Dump continuous futures dataframe to Excel.
-    write_vx_continuous_df_to_excel(vx_continuous_df)
+    write_vx_continuous_df_to_excel(vx_continuous_df, dry_run=settings.st_dry_run)
 
     # Update Excel file on Google Drive.
-    update_vx_continuous_df_googledrive()
+    update_vx_continuous_df_googledrive(dry_run=settings.st_dry_run)
 
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
@@ -204,7 +204,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     plt.subplots_adjust(bottom=0.2, hspace=0.1, wspace=0.3) # adjust spacing between and around sub-plots
 #END: generate_vx_figure
 
-def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_dir='.data'):
+def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_dir='.data', dry_run=False):
     """
     Dump VIX futures continuous dataframe to an Excel file with formatting. Data is
     cached (see {cache_dir}/vx_continuous_df.p) and reused on each run, eliminating
@@ -220,7 +220,13 @@ def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_
 
     cache_dir : str
         Directory in which to cache the dataframe.
+
+    dry_run : bool
+        Do not actually update.
     """
+    if(dry_run):
+        logger.debug('Dry-run is enabled so will not update.')
+        return
     logger.debug('vx_continuous_df = \n{}'.format(vx_continuous_df))
     writer = ExcelWriter(filename, engine='openpyxl')
     cache_path = '{}/vx_continuous_df.p'.format(cache_dir)
@@ -259,7 +265,7 @@ def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_
     logger.debug('Dumped continuous futures dataframe to ({}).'.format(filename))
 #END: write_vx_continuous_df_to_excel
 
-def update_vx_continuous_df_googledrive(filename='vf.xlsx', fileId='0B4HikxB_9ulBMk5KY0YzQ2tzdzA'):
+def update_vx_continuous_df_googledrive(filename='vf.xlsx', fileId='0B4HikxB_9ulBMk5KY0YzQ2tzdzA', dry_run=False):
     """
     Update Excel file on Google Drive containing the VIX futures continuous data.
 
@@ -270,7 +276,14 @@ def update_vx_continuous_df_googledrive(filename='vf.xlsx', fileId='0B4HikxB_9ul
 
     fileId : str
         File's Google Drive ID.
+
+    dry_run : bool
+        Do not actually update.
     """
+    if(dry_run):
+        logger.debug('Dry-run is enabled so will not update.')
+        return
+
     from googledrive import get_credentials, update_file
     import httplib2
     from apiclient import discovery
