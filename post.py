@@ -68,11 +68,11 @@ def main():
 
     if(st_post_st_chart):
         # Plot short-term VX data to image file.
-        generate_vx_figure(vx_continuous_df, settings.st_years, 'VIX', 'STCMVF')
+        generate_vx_figure(vx_continuous_df, settings.st_years, 'VIX', 'STCMVF', 'VIX', 'Short-Term Constant-Maturity VIX Futures (STCMVF)')
         plt.savefig(settings.st_st_chart_file, dpi=300)
     if(st_post_mt_chart):
         # Plot mid-term VX data to image file.
-        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VXMT', 'MTCMVF')
+        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VXMT', 'MTCMVF', 'VXMT', 'Mid-Term Constant-Maturity VIX Futures (MTCMVF)')
         plt.savefig(settings.st_mt_chart_file, dpi=300)
 
     # Dump continuous futures dataframe to Excel.
@@ -116,7 +116,7 @@ def main():
             dry_run=settings.st_dry_run)
 #END: main
 
-def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
+def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, title_b):
     """
     Create the continuous VX figure, which plots column A and column B over time, the
     percent difference between the two, and their histograms.
@@ -135,6 +135,12 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
 
     column_b : str
         Name of second column in vx_continuous_df to plot.
+
+    title_a : str
+        Title of first data-series in vx_continuous_df to plot.
+
+    title_b : str
+        Title of second data-series in vx_continuous_df to plot.
     """
     data_a = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now][column_a].dropna()
     data_b = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now][column_b].dropna()
@@ -142,6 +148,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b):
     # Setup a grid of sub-plots.
     fig = plt.figure(1)
     gs  = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[2, 1])
+    plt.suptitle('{} vs {}'.format(title_a, title_b), style='italic', fontweight='bold', color='#707070')
 
     # data_a vs data_b
     timeseries_axes1 = plt.subplot(gs[0, 0])
