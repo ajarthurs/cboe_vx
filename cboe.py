@@ -40,7 +40,7 @@ cboe_historical_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cb
         tz_localize('America/Chicago').tz_convert('UTC')
 
 # Time when CBOE updates daily settlement values.
-cboe_daily_update_time_str = '15:30' # Chicago time
+cboe_daily_update_time_str = '15:20' # Chicago time
 cboe_daily_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_daily_update_time_str)).\
         tz_localize('America/Chicago').tz_convert('UTC')
 
