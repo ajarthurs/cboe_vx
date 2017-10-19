@@ -352,7 +352,7 @@ def post_to_stocktwits(access_token, message, link=None, attachment=None, dry_ru
     logger.debug('payload = ' + str(payload))
 
     if(total_count > 140):
-        log.error('Message length, {}, exceeds 140 characters.'.format(total_count))
+        logger.error('Message length, {}, exceeds 140 characters.'.format(total_count))
 
     try:
         if(dry_run):
