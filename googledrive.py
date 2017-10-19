@@ -68,6 +68,25 @@ def get_credentials(application, client_secret_file='client_secret.json', scopes
 #END: get_credentials
 
 def update_file(drive_service, fileId, mimetype, filename, local_filename=None):
+    """Update Google Drive file's contents.
+
+    Parameters
+    ----------
+    drive_service : googleapiclient.discovery.Resource
+        Google Drive service object.
+
+    fileId : str
+        File's Google Drive ID.
+
+    mimetype : str
+        File's MIME type.
+
+    filename : str
+        Name of Google Drive file.
+
+    local_filename : str
+        Path of local file being uploaded. Default is name of Google Drive file.
+    """
     if(not local_filename):
         local_filename = filename
     file_metadata = {
