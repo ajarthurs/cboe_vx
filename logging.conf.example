@@ -5,7 +5,7 @@
 # 2. Fill in the SMTP variables below
 
 [loggers]
-keys=root,post,cboe
+keys=root,post,cboe,googledrive
 
 [handlers]
 keys=consoleHandler,fileHandler,smtpHandler
@@ -27,6 +27,12 @@ propagate=0
 level=DEBUG
 handlers=consoleHandler,fileHandler,smtpHandler
 qualname=cboe
+propagate=0
+
+[logger_googledrive]
+level=DEBUG
+handlers=consoleHandler,fileHandler,smtpHandler
+qualname=googledrive
 propagate=0
 
 [handler_consoleHandler]
