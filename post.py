@@ -78,6 +78,9 @@ def main():
     # Dump continuous futures dataframe to Excel.
     write_vx_continuous_df_to_excel(vx_continuous_df)
 
+    # Update Excel file on Google Drive.
+    update_vx_continuous_df_googledrive()
+
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
     vx_today         = vx_continuous_df.iloc[-1]
@@ -248,6 +251,40 @@ def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_
     writer.save()
     logger.debug('Dumped continuous futures dataframe to ({}).'.format(filename))
 #END: write_vx_continuous_df_to_excel
+
+def update_vx_continuous_df_googledrive(filename='vf.xlsx', fileId='0B4HikxB_9ulBMk5KY0YzQ2tzdzA'):
+    """
+    Update Excel file on Google Drive containing the VIX futures continuous data.
+
+    Parameter:
+    ----------
+    filename : str
+        Name of Excel file to write to.
+
+    fileId : str
+        File's Google Drive ID.
+    """
+    from googledrive import get_credentials, update_file
+    import httplib2
+    from apiclient import discovery
+    from googleapiclient.http import MediaFileUpload
+    from oauth2client import client, tools
+    from oauth2client.file import Storage
+
+    # Authorize
+    credentials = get_credentials('VIX Futures Data', consent=False)
+    if(not credentials):
+        raise Exception('Failed to retrieve credentials')
+    http_auth = credentials.authorize(httplib2.Http())
+    drive_service = discovery.build('drive', 'v3', http=http_auth, cache_discovery=False)
+
+    # Upload
+    update_file(drive_service,
+            fileId=fileId,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            filename=filename
+            )
+#END: update_vx_continuous_df_googledrive
 
 def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
     """
