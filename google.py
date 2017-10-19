@@ -86,6 +86,8 @@ def test_credentials():
     credentials = get_credentials('VIX Futures Data', scopes='https://www.googleapis.com/auth/drive', force_consent=True)
     if(not credentials):
         raise Exception('Failed to retrieve credentials')
+    http_auth = credentials.authorize(httplib2.Http())
+    drive_service = discovery.build('drive', 'v3', http=http_auth)
 
     # Drop into a Python shell with all definitions.
     code.interact(local=dict(globals(), **locals()))
