@@ -110,10 +110,12 @@ def main():
     else:
         st_mt_attachment = None
 
-    post_to_stocktwits(settings.st_access_token, st_st_message, attachment=st_st_attachment,
-            dry_run=settings.st_dry_run)
-    post_to_stocktwits(settings.st_access_token, st_mt_message, attachment=st_mt_attachment,
-            dry_run=settings.st_dry_run)
+    post_to_stocktwits(settings.st_access_token, st_st_message,
+            link=settings.st_st_link,
+            attachment=st_st_attachment, dry_run=settings.st_dry_run)
+    post_to_stocktwits(settings.st_access_token, st_mt_message,
+            link=settings.st_st_link,
+            attachment=st_mt_attachment, dry_run=settings.st_dry_run)
 #END: main
 
 def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, title_b):
@@ -310,7 +312,7 @@ def update_vx_continuous_df_googledrive(filename='vf.xlsx', fileId='0B4HikxB_9ul
             )
 #END: update_vx_continuous_df_googledrive
 
-def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
+def post_to_stocktwits(access_token, message, link=None, attachment=None, dry_run=False):
     """
     Post message and attachment (optional) to StockTwits using the given access token
     (see https://stocktwits.com/developers/docs/authentication). Messages must be
@@ -324,6 +326,9 @@ def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
     message : str
         Test message to be posted.
 
+    link : str
+        Link to add at end of message.
+
     attachment : str
         Path to image to be attached with message. File formats accepted: JPG, PNG, and
         GIF under 2MB. Counts as 24 characters if specified.
@@ -332,6 +337,10 @@ def post_to_stocktwits(access_token, message, attachment=None, dry_run=False):
         Do not actually post message.
     """
     total_count = len(message)
+    if(link):
+        message = message + ' -- Data:{}'
+        message = message.format(link)
+        total_count += 24
     payload = {'access_token':access_token, 'body':message}
     if(attachment):
         (attachment_type, encoding) = mimetypes.MimeTypes().guess_type(attachment)
