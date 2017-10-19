@@ -98,7 +98,7 @@ def test_credentials():
     # Debug-level logging.
     logger.setLevel(logging.DEBUG)
     fmt = logging.Formatter('%(asctime)s - %(name)s:%(funcName)s - %(levelname)s - %(message)s')
-    fh = logging.FileHandler('google.test_credentials.log', 'w')
+    fh = logging.FileHandler('googledrive.test_credentials.log', 'w')
     fh.setFormatter(fmt)
     con = logging.StreamHandler(sys.stdout)
     con.setFormatter(fmt)
@@ -128,7 +128,7 @@ def test_upload():
     # Debug-level logging.
     logger.setLevel(logging.DEBUG)
     fmt = logging.Formatter('%(asctime)s - %(name)s:%(funcName)s - %(levelname)s - %(message)s')
-    fh = logging.FileHandler('google.test_upload.log', 'w')
+    fh = logging.FileHandler('googledrive.test_upload.log', 'w')
     fh.setFormatter(fmt)
     con = logging.StreamHandler(sys.stdout)
     con.setFormatter(fmt)
