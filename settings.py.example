@@ -18,7 +18,7 @@ st_post_st_cash_tags = True
 st_st_cash_tags      = '$VXX $XIV $VIIX $SVXY $UVXY $TVIX'
 st_post_st_chart     = True
 st_st_preamble       = st_st_cash_tags if st_post_st_cash_tags else '(TEST)'
-st_st_message        = '{} Short-term VIX futures settled at {:.3f} ({:+.1%}).'
+st_st_message        = '{} Short-term VIX futures settled {:.3f}({:+.1%}).'
 st_st_link           = 'https://drive.google.com/file/d/0B4HikxB_9ulBMk5KY0YzQ2tzdzA/view?usp=sharing'
 st_st_chart_file     = 'st_chart.png'
 # Mid-term VX ETPs
@@ -26,6 +26,6 @@ st_post_mt_cash_tags = True
 st_mt_cash_tags      = '$VXZ $ZIV $VIIZ $VIXM $TVIZ'
 st_post_mt_chart     = True
 st_mt_preamble       = st_mt_cash_tags if st_post_mt_cash_tags else '(TEST)'
-st_mt_message        = '{} Mid-term VIX futures settled at {:.3f} ({:+.1%}).'
+st_mt_message        = '{} Mid-term VIX futures settled {:.3f}({:+.1%}).'
 st_mt_link           = 'https://drive.google.com/file/d/0B4HikxB_9ulBMk5KY0YzQ2tzdzA/view?usp=sharing'
 st_mt_chart_file     = 'mt_chart.png'
