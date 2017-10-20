@@ -241,6 +241,10 @@ def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_
         cache_vx_continuous_df = pickle.load(open(cache_path, 'rb'))
     except:
         cache_vx_continuous_df = vx_continuous_df
+    # Update end of cache.
+    cache_vx_continuous_df = cache_vx_continuous_df[
+            cache_vx_continuous_df.index < vx_continuous_df.index[0]
+            ]
     all_vx_continuous_df = pd.concat([cache_vx_continuous_df, vx_continuous_df])
     logger.debug('all_vx_continuous_df = \n{}'.format(all_vx_continuous_df))
     try:
