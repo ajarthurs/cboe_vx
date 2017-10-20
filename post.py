@@ -114,7 +114,7 @@ def main():
             link=settings.st_st_link,
             attachment=st_st_attachment, dry_run=settings.st_dry_run)
     post_to_stocktwits(settings.st_access_token, st_mt_message,
-            link=settings.st_st_link,
+            link=settings.st_mt_link,
             attachment=st_mt_attachment, dry_run=settings.st_dry_run)
 #END: main
 
