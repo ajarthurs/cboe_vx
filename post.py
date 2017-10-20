@@ -312,7 +312,7 @@ def update_vx_continuous_df_googledrive(filename='vf.xlsx', fileId='0B4HikxB_9ul
             )
 #END: update_vx_continuous_df_googledrive
 
-def post_to_stocktwits(access_token, message, link_preamble=None, link=None, attachment=None, dry_run=False):
+def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, attachment=None, dry_run=False):
     """
     Post message and attachment (optional) to StockTwits using the given access token
     (see https://stocktwits.com/developers/docs/authentication). Messages must be
@@ -342,12 +342,8 @@ def post_to_stocktwits(access_token, message, link_preamble=None, link=None, att
     """
     total_count = len(message)
     if(link):
-        if(link_preamble):
-            message = '{}{}{}'.format(message, link_preamble, link)
-            total_count += len(link_preamble) + 24
-        else:
-            message = '{} {}'.format(message, link)
-            total_count += 25
+        message = '{}{}{}'.format(message, link_preamble, link)
+        total_count += len(link_preamble) + 24
     payload = {'access_token':access_token, 'body':message}
     if(attachment):
         (attachment_type, encoding) = mimetypes.MimeTypes().guess_type(attachment)
