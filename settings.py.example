@@ -15,7 +15,7 @@ st_dry_run        = True
 st_access_token   = 'my-StockTwits-access-token'
 # Short-term VX ETPs
 st_post_st_cash_tags = True
-st_st_cash_tags      = '$VXX $XIV $VIIX $SVXY $UVXY $TVIX'
+st_st_cash_tags      = '$VIX $VXX $XIV $VIIX $SVXY $UVXY $TVIX'
 st_post_st_chart     = True
 st_st_preamble       = st_st_cash_tags if st_post_st_cash_tags else '(TEST)'
 st_st_message        = '{} Short-term VIX futures settled {:.3f}({:+.1%}).'
