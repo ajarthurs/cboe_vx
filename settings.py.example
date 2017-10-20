@@ -7,6 +7,7 @@
 # Application settings.
 st_years = 2
 mt_years = 5
+export_excel = True
 
 # StockTwits settings.
 # (see https://stocktwits.com/developers/docs/authentication)

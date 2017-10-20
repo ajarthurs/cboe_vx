@@ -76,10 +76,10 @@ def main():
         plt.savefig(settings.st_mt_chart_file, dpi=300)
 
     # Dump continuous futures dataframe to Excel.
-    write_vx_continuous_df_to_excel(vx_continuous_df, dry_run=settings.st_dry_run)
+    write_vx_continuous_df_to_excel(vx_continuous_df, dry_run=(not settings.export_excel))
 
     # Update Excel file on Google Drive.
-    update_vx_continuous_df_googledrive(dry_run=settings.st_dry_run)
+    update_vx_continuous_df_googledrive(dry_run=(not settings.export_excel))
 
     # Get recent VX quotes.
     vx_yesterday     = vx_continuous_df.iloc[-2]
