@@ -338,9 +338,9 @@ def post_to_stocktwits(access_token, message, link=None, attachment=None, dry_ru
     """
     total_count = len(message)
     if(link):
-        message = message + ' -- Data:{}'
-        message = message.format(link)
-        total_count += 24
+        preamble = ' -- DATA:'
+        message = message + '{}{}'.format(preamble, link)
+        total_count += len(preamble) + 24 # links count as 24 characters
     payload = {'access_token':access_token, 'body':message}
     if(attachment):
         (attachment_type, encoding) = mimetypes.MimeTypes().guess_type(attachment)
