@@ -331,7 +331,7 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
         Text to add before the link. Ignored is link is not specified.
 
     link : str
-        Link to add at end of message. Counts as 24 characters plus len(link_preamble) if specified.
+        Link to add at end of message. Counts as 23 characters plus len(link_preamble) if specified.
 
     attachment : str
         Path to image to be attached with message. File formats accepted: JPG, PNG, and
@@ -343,7 +343,7 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
     total_count = len(message)
     if(link):
         message = '{}{}{}'.format(message, link_preamble, link)
-        total_count += len(link_preamble) + 24
+        total_count += len(link_preamble) + 23
     payload = {'access_token':access_token, 'body':message}
     if(attachment):
         (attachment_type, encoding) = mimetypes.MimeTypes().guess_type(attachment)
