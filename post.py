@@ -111,10 +111,10 @@ def main():
         st_mt_attachment = None
 
     post_to_stocktwits(settings.st_access_token, st_st_message,
-            link=settings.st_st_link,
+            link_preamble=settings.st_st_link_preamble, link=settings.st_st_link,
             attachment=st_st_attachment, dry_run=settings.st_dry_run)
     post_to_stocktwits(settings.st_access_token, st_mt_message,
-            link=settings.st_mt_link,
+            link_preamble=settings.st_mt_link_preamble, link=settings.st_mt_link,
             attachment=st_mt_attachment, dry_run=settings.st_dry_run)
 #END: main
 
@@ -312,11 +312,12 @@ def update_vx_continuous_df_googledrive(filename='vf.xlsx', fileId='0B4HikxB_9ul
             )
 #END: update_vx_continuous_df_googledrive
 
-def post_to_stocktwits(access_token, message, link=None, attachment=None, dry_run=False):
+def post_to_stocktwits(access_token, message, link_preamble=None, link=None, attachment=None, dry_run=False):
     """
     Post message and attachment (optional) to StockTwits using the given access token
     (see https://stocktwits.com/developers/docs/authentication). Messages must be
-    less than 140 characters.
+    less than 140 characters. If the message contains a link, use the parameters,
+    link_preamble and link, to get the correct character-count.
 
     Parameters
     ----------
@@ -326,8 +327,11 @@ def post_to_stocktwits(access_token, message, link=None, attachment=None, dry_ru
     message : str
         Message to be posted.
 
+    link_preamble : str
+        Text to add before the link. Ignored is link is not specified.
+
     link : str
-        Link to add at end of message.
+        Link to add at end of message. Counts as 24 characters plus len(link_preamble) if specified.
 
     attachment : str
         Path to image to be attached with message. File formats accepted: JPG, PNG, and
@@ -338,9 +342,12 @@ def post_to_stocktwits(access_token, message, link=None, attachment=None, dry_ru
     """
     total_count = len(message)
     if(link):
-        preamble = ' -- DATA:'
-        message = message + '{}{}'.format(preamble, link)
-        total_count += len(preamble) + 24 # links count as 24 characters
+        if(link_preamble):
+            message = '{}{}{}'.format(message, link_preamble, link)
+            total_count += len(link_preamble) + 24
+        else:
+            message = '{} {}'.format(message, link)
+            total_count += 25
     payload = {'access_token':access_token, 'body':message}
     if(attachment):
         (attachment_type, encoding) = mimetypes.MimeTypes().guess_type(attachment)
