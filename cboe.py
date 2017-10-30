@@ -723,6 +723,8 @@ def fetch_index(index):
 def test_plot():
     """Test unit that plots STCMVF and VIX over time."""
     import pandas_datareader.data as web
+    import matplotlib
+    matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     import code
 

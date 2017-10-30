@@ -7,6 +7,8 @@ import cboe
 import pandas as pd
 import pandas_datareader.data as web
 from pandas import ExcelWriter
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
