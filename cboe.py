@@ -601,7 +601,7 @@ def build_continuous_vx_dataframe(vx_contract_df):
     timeframe      = vx_contract_df.index.unique()
 
     # Create GroupBy objects.
-    vx_td_gb = vx_contract_df.groupby('Trade Date')      # group by trading day
+    vx_td_gb = vx_contract_df.groupby([pd.Grouper('Trade Date')])      # group by trading day
     vx_ed_gb = vx_contract_df.groupby('Expiration Date') # group by expiration day
 
     logger.debug('vx_td_gb =\n{}'.format(vx_td_gb))
