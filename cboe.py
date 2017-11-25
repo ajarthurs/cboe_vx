@@ -761,10 +761,10 @@ def test_plot():
 
     # Plot
     vx_continuous_df[['VIX','STCMVF']].plot()
-    plt.savefig('st.png')
+    plt.savefig('chart_test.png')
 
     # Write to Excel
-    writer = ExcelWriter('vf.xlsx')
+    writer = ExcelWriter('vf_test.xlsx')
     vx_continuous_df.to_excel(writer)
     writer.save()
 
