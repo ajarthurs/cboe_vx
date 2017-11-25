@@ -27,7 +27,7 @@ logger = logging.getLogger('post')
 
 def main():
     # Is today a business day? If not, quit.
-    if(not cboe.is_business_day(cboe.today)):
+    if(settings.check_for_holiday and not cboe.is_business_day(cboe.today)):
         logger.debug('Today ({:%Y-%m-%d}) is a non-workday. Aborting...'.format(cboe.today))
         sys.exit()
     logger.debug('Today ({:%Y-%m-%d}) is a workday. Proceeding...'.format(cboe.today))
