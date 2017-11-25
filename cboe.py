@@ -7,6 +7,8 @@ import pandas as pd
 from holiday import USMarketHolidayCalendar
 from pandas.tseries.offsets import CDay,Day,Week,MonthBegin,MonthEnd
 from pandas import ExcelWriter
+from pandas.tseries import converter
+converter.register()
 import pytz
 import calendar
 import re
