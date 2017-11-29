@@ -700,7 +700,7 @@ def fetch_index(index):
         stoday = '{:%m/%d/%Y}'.format(today)
         if(stoday not in index_df['Date'].values):
             # Fetch today's data from Google Finance
-            google_page = urllib.request.urlopen('https://www.google.com/finance?q=INDEXCBOE%3A{}'.format(index))
+            google_page = urllib.request.urlopen('https://finance.google.com/finance?q=INDEXCBOE%3A{}'.format(index))
             google_soup = BeautifulSoup(google_page, 'html5lib')
             last_entry = pd.DataFrame([
                 dict(
