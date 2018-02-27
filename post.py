@@ -7,8 +7,8 @@ import cboe
 import pandas as pd
 import pandas_datareader.data as web
 from pandas import ExcelWriter
-from pandas.tseries import converter
-converter.register()
+from pandas import plotting
+plotting.register_matplotlib_converters()
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
