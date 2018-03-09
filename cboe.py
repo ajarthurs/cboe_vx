@@ -26,7 +26,8 @@ now         = pd.to_datetime('now', utc=True)
 today       = now.tz_convert('America/Chicago').normalize()
 
 # References to CBOE's historical futures data.
-cboe_historical_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
+cboe_historical_index_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
+cboe_historical_base_url = 'https://markets.cboe.com/us/futures/market_statistics/historical_data/products/csv'
 cboe_base_millennium     = 2000
 cboe_vx_adj_date         = pd.datetime(2007, 3, 23, tzinfo=pytz.timezone('UTC'))
 #                  J    F    M    A    M    J    J    A    S    O    N    D
@@ -160,28 +161,6 @@ def fetch_vx_contracts(period, force_update=False):
     vx_contract_df = vx_contract_df.loc[period]
     vx_contract_df = vx_contract_df.dropna()
 
-    # Get the most recent business day.
-    post_date = (now - bday_us*(not is_business_day(today))).normalize()
-    if(now < cboe_daily_update_time):
-        post_date = post_date - bday_us
-    logger.debug('post_date = {:%Y-%m-%d}'.format(post_date))
-
-    if(post_date in period):
-        # Append daily settlement values of the monthly VX contracts.
-        vx_ds_df   = fetch_vx_daily_settlement()
-        current_df = pd.DataFrame([{
-            'Trade Date':      post_date,
-            'Futures':         '{} ({} {})'.format(
-                month_code[vx_ds_df.loc[i, 'Expiration Date'].month],
-                calendar.month_abbr[vx_ds_df.loc[i, 'Expiration Date'].month],
-                vx_ds_df.loc[i, 'Expiration Date'].year - cboe_base_millennium),
-            'Expiration Date': vx_ds_df.loc[i, 'Expiration Date'],
-            'Settle':          vx_ds_df.loc[i, 'SettlementPrice'],
-            'Open':np.nan,'High':np.nan,'Low':np.nan,'Close':np.nan,
-            'Change':np.nan,'Total Volume':np.nan,'EFP':np.nan,'Open Interest':np.nan}
-            for i in vx_ds_df.index])
-        current_df = current_df.set_index(current_df['Trade Date'], drop=False)
-        vx_contract_df = vx_contract_df.append(current_df)
     return(vx_contract_df)
 #END: fetch_vx_contracts
 
@@ -235,10 +214,8 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
     except:
         # Fallback to fetching from CBOE.
         try:
-            # (example: CFE_F16_VX.csv for the January 2016 contract)
             vx_contract = pd.read_csv(
-                    '{}/CFE_{}{:02}_VX.csv'.format(cboe_historical_base_url, month_code[monthyear.month],
-                    monthyear.year - cboe_base_millennium),
+                '{}/VX/{:%Y-%m-%d}'.format(cboe_historical_base_url, vx_expdate),
                 header=1,
                 names=['Trade Date','Futures','Open','High','Low','Close','Settle',
                     'Change','Total Volume','EFP','Open Interest'])
@@ -249,7 +226,7 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
         try:
             # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
             vx_contract['Trade Date'] = pd.to_datetime(vx_contract['Trade Date'],
-                    format='%m/%d/%Y').apply(lambda x: x.tz_localize('UTC'))
+                    format='%Y-%m-%d').apply(lambda x: x.tz_localize('UTC'))
             vx_contract['Trade Date'] = pd.DatetimeIndex(vx_contract['Trade Date']).normalize()
         except:
             logger.exception('Unexpected datetime format from CBOE.')
@@ -694,7 +671,7 @@ def fetch_index(index):
         import urllib
         from bs4 import BeautifulSoup
 
-        index_df = pd.read_csv('{}/{}'.format(cboe_historical_base_url, cboe_index[index]),
+        index_df = pd.read_csv('{}/{}'.format(cboe_historical_index_base_url, cboe_index[index]),
                 skiprows=2, header=1, names=['Date', 'Open', 'High', 'Low', 'Close'])
         logger.debug('index_df = \n{}'.format(index_df))
         stoday = '{:%m/%d/%Y}'.format(today)
