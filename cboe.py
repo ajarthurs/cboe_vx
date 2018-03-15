@@ -674,19 +674,6 @@ def fetch_index(index):
         index_df = pd.read_csv('{}/{}'.format(cboe_historical_index_base_url, cboe_index[index]),
                 skiprows=2, header=1, names=['Date', 'Open', 'High', 'Low', 'Close'])
         logger.debug('index_df = \n{}'.format(index_df))
-        stoday = '{:%m/%d/%Y}'.format(today)
-        if(stoday not in index_df['Date'].values):
-            # Fetch today's data from Google Finance
-            google_page = urllib.request.urlopen('https://finance.google.com/finance?q=INDEXCBOE%3A{}'.format(index))
-            google_soup = BeautifulSoup(google_page, 'html5lib')
-            last_entry = pd.DataFrame([
-                dict(
-                    Date=stoday, Open=np.nan, High=np.nan, Low=np.nan,
-                    Close=float(google_soup.find('span', class_='pr').span.string)
-                    )
-                ])
-            index_df = index_df.append(last_entry)
-            logger.debug('Appending to dataframe:\n{}'.format(last_entry))
         # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
         index_df['Date'] = pd.to_datetime(index_df['Date'],
                 format='%m/%d/%Y').apply(lambda x: x.tz_localize('UTC'))
