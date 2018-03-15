@@ -213,14 +213,16 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
         logger.debug('Retrieved VX contract {} from cache ({}).'.format(contract_name, cache_path))
     except:
         # Fallback to fetching from CBOE.
+        url = '{}/VX/{:%Y-%m-%d}'.format(cboe_historical_base_url, vx_expdate)
         try:
             vx_contract = pd.read_csv(
-                '{}/VX/{:%Y-%m-%d}'.format(cboe_historical_base_url, vx_expdate),
+                url,
                 header=1,
                 names=['Trade Date','Futures','Open','High','Low','Close','Settle',
                     'Change','Total Volume','EFP','Open Interest'])
+            logger.debug('Retrieved VX contract {} from {}'.format(contract_name, vx_contract))
         except:
-            logger.exception('Failed to download VX contract {} from CBOE.'.format(contract_name))
+            logger.exception('Failed to download VX contract {} from {}'.format(contract_name, url))
             raise
 
         try:
