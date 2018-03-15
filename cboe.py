@@ -394,8 +394,10 @@ def is_cboe_cache_current(contract, expdate, cache_path):
         # Check if contract is expired or cache is up-to-date.
         current_datetime = cboe_historical_update_time if(now >= cboe_historical_update_time) else\
                 (cboe_historical_update_time - bday_us)
-        cache_last_date  = contract['Trade Date'].iloc[-1]
-        if(cache_last_date < (expdate-bday_us) and current_datetime > (cache_last_date+2*bday_us)):
+        logger.debug('expdate = {}'.format(expdate))
+        logger.debug('current_datetime = {}'.format(current_datetime))
+        # Cache is stale if the contract is active, has not expired.
+        if(current_datetime < expdate):
             logger.debug('Cache ({}) is out-of-date.'.format(cache_path))
             is_current = False
     except OSError:
