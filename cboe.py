@@ -680,13 +680,18 @@ def fetch_index(index):
         logger.debug('index_df = \n{}'.format(index_df))
         stoday = '{:%m/%d/%Y}'.format(today)
         if(stoday not in index_df['Date'].values):
-            # Fetch today's data from Google Finance
-            google_page = urllib.request.urlopen('https://finance.google.com/finance?q=INDEXCBOE%3A{}'.format(index))
-            google_soup = BeautifulSoup(google_page, 'html5lib')
+            # Fetch today's data from Yahoo! Finance
+            url = 'https://finance.yahoo.com/quote/^{}'.format(index)
+            logger.debug('Fetching {} quote from {}'.format(index, url))
+            quote_page = urllib.request.urlopen(url)
+            quote_soup = BeautifulSoup(quote_page, 'html5lib')
+            close_text = quote_soup.select('span[data-reactid=="14"]')[0].text
+            logger.debug('close_text = {}'.format(close_text))
+            close = float(close_text)
             last_entry = pd.DataFrame([
                 dict(
                     Date=stoday, Open=np.nan, High=np.nan, Low=np.nan,
-                    Close=float(google_soup.find('span', class_='pr').span.string)
+                    Close=close
                     )
                 ])
             index_df = index_df.append(last_entry)
