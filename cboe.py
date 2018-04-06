@@ -48,7 +48,7 @@ cboe_daily_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_da
         tz_localize('America/Chicago').tz_convert('UTC')
 
 # References to CBOE's daily settlement futures data.
-cboe_current_base_url = 'http://cfe.cboe.com/market-data'
+cboe_current_base_url = 'https://markets.cboe.com/us/futures/market_statistics/settlement'
 
 # Other CBOE information.
 num_active_vx_contracts = 8
@@ -160,6 +160,29 @@ def fetch_vx_contracts(period, force_update=False):
     # Exclude invalid entries and entries outside the target timeframe.
     vx_contract_df = vx_contract_df.loc[period]
     vx_contract_df = vx_contract_df.dropna()
+
+    # Get the most recent business day.
+    post_date = (now - bday_us*(not is_business_day(today))).normalize()
+    if(now < cboe_daily_update_time):
+        post_date = post_date - bday_us
+    logger.debug('post_date = {:%Y-%m-%d}'.format(post_date))
+
+    if(post_date in period):
+        # Append daily settlement values of the monthly VX contracts.
+        vx_ds_df   = fetch_vx_daily_settlement()
+        current_df = pd.DataFrame([{
+            'Trade Date':      post_date,
+            'Futures':         '{} ({} {})'.format(
+                month_code[vx_ds_df.loc[i, 'Expiration Date'].month],
+                calendar.month_abbr[vx_ds_df.loc[i, 'Expiration Date'].month],
+                vx_ds_df.loc[i, 'Expiration Date'].year - cboe_base_millennium),
+            'Expiration Date': vx_ds_df.loc[i, 'Expiration Date'],
+            'Settle':          vx_ds_df.loc[i, 'Price'],
+            'Open':np.nan,'High':np.nan,'Low':np.nan,'Close':np.nan,
+            'Change':np.nan,'Total Volume':np.nan,'EFP':np.nan,'Open Interest':np.nan}
+            for i in vx_ds_df.index])
+        current_df = current_df.set_index(current_df['Trade Date'], drop=False)
+        vx_contract_df = vx_contract_df.append(current_df)
 
     return(vx_contract_df)
 #END: fetch_vx_contracts
@@ -274,7 +297,7 @@ def fetch_vx_daily_settlement():
     --------
     >>> ds = cboe.fetch_vx_daily_settlement()
     >>> ds
-               Symbol  SettlementPrice           Expiration Date
+               Symbol           Price           Expiration Date
     0   VX 04/19/2017           16.325 2017-04-19 00:00:00+00:00
     4   VX 05/17/2017           15.225 2017-05-17 00:00:00+00:00
     7   VX 06/21/2017           15.275 2017-06-21 00:00:00+00:00
@@ -287,34 +310,29 @@ def fetch_vx_daily_settlement():
 
     """
     # CBOE's Format:
-    #    Symbol         SettlementPrice
+    #    Symbol         Price
     #    VX MM/DD/YYYY  *.***               <-- Front month
     #    VX** ExpDate2  *.***               <-- Weekly 1
     #    VX** ExpDate3  *.***               <-- Weekly 2
     #    VX** ExpDate4  *.***               <-- Weekly 3
     #    VX ExpDate5    *.***               <-- Back month
     #    ...
+    csv_url = '{}/csv?dt={:%Y-%m-%d}'.format(cboe_current_base_url, today)
+    html_url = cboe_current_base_url
     try:
-        vx_eod_values = pd.read_csv('{}/futures-settlements'.format(cboe_current_base_url),
-                header=0, names=['Symbol', 'SettlementPrice'])
-        logger.debug('Fetched data from CSV.')
-    except: # fallback to HTML table
-        try:
-            cboe_tables = pd.read_html('{}/vx-futures-daily-settlement-prices'.format(cboe_current_base_url),
-                    match='Settlement Price', header=0)
-            cboe_tables[0].columns = [re.sub('\s+', ' ', x.strip()) for x in cboe_tables[0]]
-            vx_eod_values = pd.DataFrame()
-            vx_eod_values['Symbol']          = cboe_tables[0]['Symbol']
-            vx_eod_values['SettlementPrice'] = cboe_tables[0]['Daily Settlement Price']
-            logger.debug('Fetched data from HTML.')
-        except:
-            logger.exception('Failed to download daily settlement values from CBOE.')
-            raise
+        all_eod_values = pd.read_csv(csv_url,
+                header=0, names=['Product', 'Symbol', 'Expiration Date', 'Price'])
+        logger.debug('Fetched data from CSV at {}.'.format(csv_url))
+    except:
+        logger.exception('Failed to download daily settlement values from CBOE.\ncsv_url = {}\nhtml_url = {}'.format(csv_url, html_url))
+        raise
 
+    logger.debug('all_eod_values =\n' + str(all_eod_values))
+    vx_eod_values = all_eod_values[all_eod_values['Product'] == 'VX']
     logger.debug('vx_eod_values =\n' + str(vx_eod_values))
 
     # Grab the front and back month expirations and settlement prices.
-    p_monthly_expdate      = re.compile('VX \s*(.*)')
+    p_monthly_expdate      = re.compile('VX\/(.*)')
     monthly_vx_eod_values  = pd.DataFrame(
             vx_eod_values[
                 vx_eod_values['Symbol'].apply(lambda x: p_monthly_expdate.match(x) is not None)
@@ -335,20 +353,14 @@ def fetch_vx_daily_settlement():
 
     # Add datetime-formatted column of expiration dates.
     try:
-        monthly_vx_eod_values['Expiration Date'] = [
-                pd.to_datetime(
-                    p_monthly_expdate.match(symbol).group(1),
-                    format='%m/%d/%Y'
-                    ).tz_localize('UTC')
-                for symbol in monthly_vx_eod_values['Symbol']
-                ]
+        monthly_vx_eod_values['Expiration Date'] = pd.to_datetime(
+                    monthly_vx_eod_values['Expiration Date'],
+                    format='%Y-%m-%d').apply(lambda x: x.tz_localize('UTC'))
         front_month_eod_value = monthly_vx_eod_values.iloc[0]
         back_month_eod_value  = monthly_vx_eod_values.iloc[1]
     except:
         logger.exception('Failed to read monthly contract expiration dates.')
         raise
-
-    logger.debug('monthly_vx_eod_values(unfiltered) =\n{}'.format(monthly_vx_eod_values))
 
     # Filter out expired contracts.
     current_datetime = cboe_historical_update_time if(now >= cboe_historical_update_time) else\
@@ -359,8 +371,8 @@ def fetch_vx_daily_settlement():
 
     front_month_expdate = front_month_eod_value['Expiration Date']
     back_month_expdate  = back_month_eod_value['Expiration Date']
-    front_month_price   = front_month_eod_value['SettlementPrice']
-    back_month_price    = back_month_eod_value['SettlementPrice']
+    front_month_price   = front_month_eod_value['Price']
+    back_month_price    = back_month_eod_value['Price']
 
     logger.debug('front_month_expdate = {}'.format(front_month_expdate))
     logger.debug('back_month_expdate  = {}'.format(back_month_expdate ))
