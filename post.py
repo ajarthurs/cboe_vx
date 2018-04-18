@@ -193,7 +193,9 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     hist_axes = plt.subplot(gs[0, 1])
     hist_axes.hist(data_a, bins='auto', label=column_a)
     hist_axes.hist(data_b, bins='auto', label=column_b, alpha=0.75)
-    plt.grid(True)
+    plt.grid(True, axis='x')
+    plt.setp(hist_axes.get_yticklabels(), visible=False) # hide occurence labels on histogram
+    plt.setp(hist_axes.get_yticklines(),  visible=False) # hide occurence axis lines on histogram
     xs, xe = hist_axes.get_xlim()
     xstep  = 5.0
     xclamp_a = np.min(data_a)
@@ -206,14 +208,13 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     logger.debug('xs, xe (after)= {}, {}'.format(xs, xe))
     plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by 5
     plt.xlabel('Volatility Level')
-    plt.ylabel('Occurrences')
     plt.title('Histogram')
     plt.legend(bbox_to_anchor=(0.5, -0.25), loc='upper center', ncol=1) # place legend below histogram
 
     # Minor adjustments
     plt.setp(timeseries_axes2.get_xticklabels(), rotation=60, # rotate dates along x-axis
             horizontalalignment='right')
-    plt.subplots_adjust(bottom=0.17, hspace=0.1, wspace=0.62) # adjust spacing between and around sub-plots
+    plt.subplots_adjust(bottom=0.17, hspace=0.10, wspace=0.35) # adjust spacing between and around sub-plots
 #END: generate_vx_figure
 
 def write_vx_continuous_df_to_excel(vx_continuous_df, filename='vf.xlsx', cache_dir='.data', dry_run=False):
