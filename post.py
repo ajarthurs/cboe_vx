@@ -168,6 +168,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     logger.debug('xs, xe = {}, {}'.format(xs, xe))
     plt.annotate('{:0.3f}'.format(data_b[-1]), xy=(data_b.index[-1], data_b[-1]), xytext=(xe+(xe-xs)*0.03, data_b[-1]),
             verticalalignment='center', arrowprops=dict(arrowstyle='-', color='#ff9f4b'), color='#ff9f4b')
+            # show last value
 
     # Percent difference between data_b and data_a
     pct_diff = ((data_b / data_a) - 1.0) * 100.0
@@ -186,6 +187,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     plt.ylabel('{}-{} (%)'.format(column_b, column_a))
     plt.annotate('{:0.1f}%'.format(pct_diff[-1]), xy=(pct_diff.index[-1], pct_diff[-1]), xytext=(xe+(xe-xs)*0.03, pct_diff[-1]),
             verticalalignment='center', arrowprops=dict(arrowstyle='-'))
+            # show last percent-difference value
 
     # Histograms
     hist_axes = plt.subplot(gs[0, 1])
