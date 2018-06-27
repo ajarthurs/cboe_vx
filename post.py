@@ -59,15 +59,15 @@ def main():
     if(success):
         vx_continuous_df['VIX'] = vix_df['Close']
 
-    # Add 'VXMT' column to continuous dataframe.
+    # Add 'VIX6M' column to continuous dataframe.
     try:
-        vxmt_df = cboe.fetch_index('VXMT')
+        vxmt_df = cboe.fetch_index('VIX6M')
         success = True
     except:
         success = False
     st_post_mt_chart   = settings.st_post_mt_chart and success
     if(success):
-        vx_continuous_df['VXMT'] = vxmt_df['Close']
+        vx_continuous_df['VIX6M'] = vxmt_df['Close']
 
     if(st_post_st_chart):
         # Plot short-term VX data to image file.
@@ -75,7 +75,7 @@ def main():
         plt.savefig(settings.st_st_chart_file, dpi=300)
     if(st_post_mt_chart):
         # Plot mid-term VX data to image file.
-        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VXMT', 'MTCMVF', 'VXMT', 'Mid-Term Constant-Maturity VIX Futures (MTCMVF)')
+        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VIX6M', 'MTCMVF', 'VIX6M', 'Mid-Term Constant-Maturity VIX Futures (MTCMVF)')
         plt.savefig(settings.st_mt_chart_file, dpi=300)
 
     # Dump continuous futures dataframe to Excel.
@@ -414,12 +414,12 @@ def build_vx_continuous_df_cache(cache_dir='.data'):
         logger.exception('Failed to fetch index VIX.')
     vx_continuous_df['VIX'] = vix_df['Close']
 
-    # Add 'VXMT' column to continuous dataframe.
+    # Add 'VIX6M' column to continuous dataframe.
     try:
-        vxmt_df = cboe.fetch_index('VXMT')
+        vxmt_df = cboe.fetch_index('VIX6M')
     except:
-        logger.exception('Failed to fetch index VXMT.')
-    vx_continuous_df['VXMT'] = vxmt_df['Close']
+        logger.exception('Failed to fetch index VIX6M.')
+    vx_continuous_df['VIX6M'] = vxmt_df['Close']
 
     # Cache dataframe.
     cache_path = '{}/vx_continuous_df.p'.format(cache_dir)

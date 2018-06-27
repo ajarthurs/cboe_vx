@@ -35,7 +35,7 @@ cboe_vx_adj_date         = pd.datetime(2007, 3, 23, tzinfo=pytz.timezone('UTC'))
 #                  n    b    r    r    y    n    l    g    p    t    v    c
 month_code = ['', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
 #             0    1    2    3    4    5    6    7    8    9   10   11   12
-cboe_index = {'VIX' : 'vixcurrent.csv', 'VXMT' : 'vxmtdailyprices.csv'}
+cboe_index = {'VIX' : 'vixcurrent.csv', 'VIX6M' : 'vix6mdailyprices.csv'}
 
 # Time when CBOE updates historical futures data.
 cboe_historical_update_time_str = '10:00' # Chicago time
@@ -676,7 +676,8 @@ def fetch_index(index):
     ----------
     index : str
         Name of the CBOE index to fetch. Must be one of the following:
-        'VXMT'
+        'VIX'
+        'VIX6M'
 
     Returns
     -------
@@ -755,9 +756,9 @@ def test_plot():
     vix_df = fetch_index('VIX')
     vx_continuous_df['VIX'] = vix_df['Close']
 
-    # Fetch VXMT daily quotes from CBOE
-    vix_df = fetch_index('VXMT')
-    vx_continuous_df['VXMT'] = vix_df['Close']
+    # Fetch VIX6M daily quotes from CBOE
+    vix_df = fetch_index('VIX6M')
+    vx_continuous_df['VIX6M'] = vix_df['Close']
 
     # Plot
     vx_continuous_df[['VIX','STCMVF']].plot()
