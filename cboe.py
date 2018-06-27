@@ -686,8 +686,9 @@ def fetch_index(index):
     try:
         import urllib
         from bs4 import BeautifulSoup
-
-        index_df = pd.read_csv('{}/{}'.format(cboe_historical_index_base_url, cboe_index[index]),
+        url = '{}/{}'.format(cboe_historical_index_base_url, cboe_index[index])
+        logger.debug('Fetching historical data from {}'.format(url))
+        index_df = pd.read_csv(url,
                 skiprows=2, header=1, names=['Date', 'Open', 'High', 'Low', 'Close'])
         logger.debug('index_df = \n{}'.format(index_df))
         stoday = '{:%m/%d/%Y}'.format(today)
