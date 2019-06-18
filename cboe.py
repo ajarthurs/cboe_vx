@@ -163,8 +163,6 @@ def fetch_vx_contracts(period, force_update=False):
 
     # Get the most recent business day.
     post_date = (now - bday_us*(not is_business_day(today))).normalize()
-    if(now < cboe_daily_update_time):
-        post_date = post_date - bday_us
     logger.debug('post_date = {:%Y-%m-%d}'.format(post_date))
 
     if(post_date in period):

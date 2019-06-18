@@ -35,9 +35,10 @@ def main():
 
     # Setup timeframe to cover last several years from the most recent business day.
     years         = max(settings.st_years, settings.mt_years)
-    end_date      = (cboe.now - cboe.bday_us*(not cboe.is_business_day(cboe.now))).normalize()
+    now           = pd.to_datetime('now')
+    end_date      = now - cboe.bday_us*(not cboe.is_business_day(now)) - cboe.bday_us*(cboe.now < cboe.cboe_daily_update_time)
     start_date    = end_date - years*365*cboe.Day()
-    target_period = pd.date_range(start=start_date, end=end_date, freq=cboe.bday_us)
+    target_period = pd.date_range(start=start_date, end=end_date, freq=cboe.bday_us, normalize=True)
 
     logger.debug('target_period =\n{}'.format(target_period))
 
