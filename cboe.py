@@ -168,8 +168,11 @@ def fetch_vx_contracts(period, force_update=False):
 
     """
     # Resample period into months plus future months over which active contracts expire.
-    months = pd.date_range(start=(period[0]-MonthBegin()),
-            end=(period[-1]+num_active_vx_contracts*MonthBegin()), freq='MS')
+    months = pd.date_range(
+        start=(period[0] - MonthBegin()),
+        end=(period[-1] + num_active_vx_contracts*MonthBegin()),
+        freq='MS',
+        )
     logger.debug('months =\n{}'.format(months))
 
     # Load VX contracts.
