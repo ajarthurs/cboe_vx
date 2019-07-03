@@ -721,6 +721,55 @@ def fetch_index(index):
     return(index_df)
 #END: fetch_index
 
+def build_vx_continuous_df_cache(cache_dir='.data'):
+    """
+    Build and cache VIX futures continuous dataframe.
+    """
+    # Setup timeframe to cover lifetime of VIX futures.
+    logger.setLevel(logging.DEBUG)
+    fmt = logging.Formatter('%(asctime)s - %(name)s:%(funcName)s - %(levelname)s - %(message)s')
+    con = logging.StreamHandler(sys.stdout)
+    con.setFormatter(fmt)
+    logger.addHandler(con)
+    #import ipdb;ipdb.set_trace()
+
+    end_date      = last_settled_date
+    start_date    = pd.datetime(2006, 1, 1)
+    target_period = pd.date_range(start=start_date, end=end_date, freq=bday_us)
+    logger.debug('target_period =\n{}'.format(target_period))
+
+    # Load VX contracts.
+    vx_contract_df = fetch_vx_contracts(target_period)#, force_update=True)
+    logger.debug('vx_contract_df =\n{}'.format(vx_contract_df))
+
+    # Build dataframe of continuous VX data.
+    vx_continuous_df = build_continuous_vx_dataframe(vx_contract_df)
+    logger.debug('vx_continuous_df =\n{}'.format(vx_continuous_df))
+
+    # Add 'VIX' column to continuous dataframe.
+    try:
+        vix_df = fetch_index('VIX')
+    except:
+        logger.exception('Failed to fetch index VIX.')
+    vx_continuous_df['VIX'] = vix_df['Close']
+
+    # Add 'VIX6M' column to continuous dataframe.
+    try:
+        vxmt_df = fetch_index('VIX6M')
+    except:
+        logger.exception('Failed to fetch index VIX6M.')
+    vx_continuous_df['VIX6M'] = vxmt_df['Close']
+
+    # Cache dataframe.
+    cache_path = '{}/vx_continuous_df.p'.format(cache_dir)
+    try:
+        # Cache continuous futures dataframe.
+        pickle.dump(vx_continuous_df, open(cache_path, 'wb'))
+        logger.debug('Cached VIX futures continuous dataframe in ({}).'.format(cache_path))
+    except:
+        logger.exception('Failed to cache VIX futures continuous dataframe.')
+#END: build_vx_continuous_df_cache
+
 def test_plot():
     """Test unit that plots STCMVF and VIX over time."""
     import matplotlib
