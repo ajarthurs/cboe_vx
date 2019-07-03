@@ -46,7 +46,6 @@ def is_business_day(date):
 #END: is_business_day
 
 # References to CBOE's historical futures data.
-cboe_historical_index_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
 cboe_historical_base_url = 'https://markets.cboe.com/us/futures/market_statistics/historical_data/products/csv' # CBOE's new site.
 cboe_old_historical_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse' # CBOE's old site.
 cboe_base_millennium     = 2000
@@ -57,6 +56,7 @@ cboe_vx_adj_date         = pd.datetime(2007, 3, 23)
 #                  n    b    r    r    y    n    l    g    p    t    v    c
 month_code = ['', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
 #             0    1    2    3    4    5    6    7    8    9   10   11   12
+cboe_historical_index_base_url = 'http://www.cboe.com/publish/scheduledtask/mktdata/datahouse'
 cboe_index = {'VIX' : 'vixcurrent.csv', 'VIX6M' : 'vix6mdailyprices.csv'}
 
 # Time when CBOE updates historical futures data.
