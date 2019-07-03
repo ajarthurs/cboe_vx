@@ -192,7 +192,7 @@ def fetch_vx_contracts(period, force_update=False):
         # Append daily settlement values of the monthly VX contracts.
         vx_ds_df   = fetch_vx_daily_settlement()
         current_df = pd.DataFrame([{
-            'Trade Date':      post_date,
+            'Trade Date':      today,
             'Futures':         '{} ({} {})'.format(
                 month_code[vx_ds_df.loc[i, 'Expiration Date'].month],
                 calendar.month_abbr[vx_ds_df.loc[i, 'Expiration Date'].month],
