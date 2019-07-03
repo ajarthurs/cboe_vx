@@ -47,8 +47,10 @@ def is_business_day(date):
 
 # References to CBOE's historical futures data.
 cboe_historical_index_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
-cboe_historical_base_url = 'https://markets.cboe.com/us/futures/market_statistics/historical_data/products/csv'
+cboe_historical_base_url = 'https://markets.cboe.com/us/futures/market_statistics/historical_data/products/csv' # CBOE's new site.
+cboe_old_historical_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse' # CBOE's old site.
 cboe_base_millennium     = 2000
+cboe_vx_new_start_date   = pd.datetime(2013, 1, 2) # Earliest date recorded on CBOE's new site.
 cboe_vx_adj_date         = pd.datetime(2007, 3, 23)
 #                  J    F    M    A    M    J    J    A    S    O    N    D
 #                  a    e    a    p    a    u    u    u    e    c    o    e
@@ -226,7 +228,8 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
     pd.DataFrame
         VX contract.
     """
-    contract_name = '({}){:%m/%Y}'.format(month_code[monthyear.month], monthyear)
+    code = month_code[monthyear.month]
+    contract_name = '({}){:%m/%Y}'.format(code, monthyear)
     logger.debug('Fetching futures contract {}.'.format(contract_name))
 
     cache_path    = '{}/VX_{:%Y_%m}.p'.format(cache_dir, monthyear)
@@ -251,7 +254,10 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
         logger.debug('Retrieved VX contract {} from cache ({}).'.format(contract_name, cache_path))
     except:
         # Fallback to fetching from CBOE.
-        url = '{}/VX/{:%Y-%m-%d}'.format(cboe_historical_base_url, vx_expdate)
+        if monthyear < cboe_vx_new_start_date: # Must get older data from CBOE's old site.
+            url = '{}/CFE_{}{:%y}_VX.csv'.format(cboe_old_historical_base_url, code, monthyear)
+        else: # Fetch from CBOE's new site.
+            url = '{}/VX/{:%Y-%m-%d}'.format(cboe_historical_base_url, vx_expdate)
         try:
             vx_contract = pd.read_csv(
                 url,
@@ -264,10 +270,12 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
             raise
 
         try:
-            # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
-            vx_contract['Trade Date'] = pd.to_datetime(vx_contract['Trade Date'],
-                    format='%Y-%m-%d').apply(lambda x: x.tz_localize('UTC'))
-            vx_contract['Trade Date'] = pd.DatetimeIndex(vx_contract['Trade Date']).normalize()
+            if monthyear < cboe_vx_new_start_date: # Must get older data from CBOE's old site.
+                # Parse dates (assuming MM/DD/YYYY format).
+                vx_contract['Trade Date'] = pd.to_datetime(vx_contract['Trade Date'], format='%m/%d/%Y')
+            else: # Get data from CBOE's new site.
+                # Parse dates (assuming YYYY-MM-DD format).
+                vx_contract['Trade Date'] = pd.to_datetime(vx_contract['Trade Date'], format='%Y-%m-%d')
         except:
             logger.exception('Unexpected datetime format from CBOE.')
             raise
