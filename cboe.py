@@ -738,7 +738,7 @@ def build_vx_continuous_df_cache(cache_dir='.data'):
     logger.debug('target_period =\n{}'.format(target_period))
 
     # Load VX contracts.
-    vx_contract_df = fetch_vx_contracts(target_period)#, force_update=True)
+    vx_contract_df = fetch_vx_contracts(target_period, force_update=True)
     logger.debug('vx_contract_df =\n{}'.format(vx_contract_df))
 
     # Build dataframe of continuous VX data.
