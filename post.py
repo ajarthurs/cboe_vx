@@ -147,8 +147,8 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     title_b : str
         Title of second data-series in vx_continuous_df to plot.
     """
-    data_a = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now][column_a].dropna()
-    data_b = vx_continuous_df[cboe.now-years*365*cboe.Day():cboe.now][column_b].dropna()
+    data_a = vx_continuous_df[cboe.today-years*365*cboe.Day():][column_a].dropna()
+    data_b = vx_continuous_df[cboe.today-years*365*cboe.Day():][column_b].dropna()
 
     # Setup a grid of sub-plots.
     fig = plt.figure(1)

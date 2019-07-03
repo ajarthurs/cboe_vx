@@ -711,9 +711,8 @@ def fetch_index(index):
             logger.debug('Appending to dataframe:\n{}'.format(last_entry))
         # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
         index_df['Date'] = pd.to_datetime(index_df['Date'],
-                format='%m/%d/%Y').apply(lambda x: x.tz_localize('UTC'))
-        index_df['Date'] = pd.DatetimeIndex(index_df['Date']).normalize()
-        index_df = index_df.set_index(index_df['Date'], drop=False)
+                format='%m/%d/%Y')
+        index_df = index_df.set_index(index_df['Date'], drop=True)
         logger.debug('Fetched {} data:\n{}'.format(index, index_df))
     except:
         logger.exception('Failed to download {} data.'.format(index))
