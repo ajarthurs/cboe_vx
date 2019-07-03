@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-"""Read and process futures data from CBOE."""
+"""Read and process futures data from CBOE. Note that the current timezone is assumed to be CBOE's time (America/Chicago), avoiding the use of timezone-aware timestamps that Pandas does not support in computations."""
 
 import numpy as np
 import pandas as pd
@@ -22,14 +22,34 @@ logger = logging.getLogger(__name__)
 # References to the US Federal Government Holiday Calendar and current time.
 calendar_us = USMarketHolidayCalendar()
 bday_us     = CDay(calendar=calendar_us)
-now         = pd.to_datetime('now', utc=True)
-today       = now.tz_convert('America/Chicago').normalize()
+now_naive   = pd.to_datetime('now') # Timezone-naive implies UTC.
+now_utc     = now_naive.tz_localize('UTC') # Make it "timezone-aware".
+now_tz      = now_utc.tz_convert('America/Chicago') # Needed to calculate today's date in Chicago time.
+now         = now_utc.astimezone('America/Chicago').replace(tzinfo=None) # Timezone-naive date and time in Chicago time (pd.Timestamp)
+today       = pd.to_datetime(now.date()) # Timezone-naive date in Chicago time (pd.Timestamp normalized)
+
+def is_business_day(date):
+    """
+    Test if date is a business day.
+
+    Parameters
+    ----------
+    date : datetime
+        Date of interest.
+
+    Returns
+    -------
+    bool
+        Date is a business day.
+    """
+    return(len(pd.date_range(start=date, end=date, freq=bday_us)) > 0)
+#END: is_business_day
 
 # References to CBOE's historical futures data.
 cboe_historical_index_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse'
 cboe_historical_base_url = 'https://markets.cboe.com/us/futures/market_statistics/historical_data/products/csv'
 cboe_base_millennium     = 2000
-cboe_vx_adj_date         = pd.datetime(2007, 3, 23, tzinfo=pytz.timezone('UTC'))
+cboe_vx_adj_date         = pd.datetime(2007, 3, 23)
 #                  J    F    M    A    M    J    J    A    S    O    N    D
 #                  a    e    a    p    a    u    u    u    e    c    o    e
 #                  n    b    r    r    y    n    l    g    p    t    v    c
@@ -38,14 +58,14 @@ month_code = ['', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
 cboe_index = {'VIX' : 'vixcurrent.csv', 'VIX6M' : 'vix6mdailyprices.csv'}
 
 # Time when CBOE updates historical futures data.
-cboe_historical_update_time_str = '10:00' # Chicago time
-cboe_historical_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_historical_update_time_str)).\
-        tz_localize('America/Chicago').tz_convert('UTC')
+cboe_historical_update_time     = pd.to_timedelta('10:00:00') # Chicago time
+cboe_historical_update_datetime = today + cboe_historical_update_time
+last_posted_date                = today - bday_us*(not is_business_day(today) or (now < cboe_historical_update_datetime))
 
 # Time when CBOE updates daily settlement values.
-cboe_daily_update_time_str = '15:20' # Chicago time
-cboe_daily_update_time     = pd.to_datetime('{:%Y-%m-%d} {}'.format(now, cboe_daily_update_time_str)).\
-        tz_localize('America/Chicago').tz_convert('UTC')
+cboe_daily_update_time     = pd.to_timedelta('15:20:00') # Chicago time
+cboe_daily_update_datetime = today + cboe_daily_update_time
+last_settled_date          = today - bday_us*(not is_business_day(today) or (now < cboe_daily_update_datetime))
 
 # References to CBOE's daily settlement futures data.
 cboe_current_base_url = 'https://markets.cboe.com/us/futures/market_statistics/settlement'
@@ -73,8 +93,8 @@ def fetch_vx_contracts(period, force_update=False):
     Examples
     --------
     >>> period = pd.date_range(
-    ...     start = datetime(2016,1,15, tzinfo=pytz.timezone('UTC')),
-    ...     end   = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
+    ...     start = datetime(2016,1,15),
+    ...     end   = datetime(2017,1,15),
     ...     freq  = cboe.bday_us)
     >>> vx_df = cboe.fetch_vx_contracts(period)
     >>> vx_df[['Futures', 'Expiration Date', 'Settle']]
@@ -161,11 +181,8 @@ def fetch_vx_contracts(period, force_update=False):
     vx_contract_df = vx_contract_df.loc[period]
     vx_contract_df = vx_contract_df.dropna()
 
-    # Get the most recent business day.
-    post_date = (now - bday_us*(not is_business_day(today))).normalize()
-    logger.debug('post_date = {:%Y-%m-%d}'.format(post_date))
-
-    if(post_date in period):
+    # Fetch today's daily settlement if posted (check current time).
+    if(today in period):
         # Append daily settlement values of the monthly VX contracts.
         vx_ds_df   = fetch_vx_daily_settlement()
         current_df = pd.DataFrame([{
@@ -352,8 +369,7 @@ def fetch_vx_daily_settlement():
     # Add datetime-formatted column of expiration dates.
     try:
         monthly_vx_eod_values['Expiration Date'] = pd.to_datetime(
-                    monthly_vx_eod_values['Expiration Date'],
-                    format='%Y-%m-%d').apply(lambda x: x.tz_localize('UTC'))
+                    monthly_vx_eod_values['Expiration Date'], format='%Y-%m-%d')
         front_month_eod_value = monthly_vx_eod_values.iloc[0]
         back_month_eod_value  = monthly_vx_eod_values.iloc[1]
     except:
@@ -361,9 +377,7 @@ def fetch_vx_daily_settlement():
         raise
 
     # Filter out expired contracts.
-    current_datetime = cboe_historical_update_time if(now >= cboe_historical_update_time) else\
-            (cboe_historical_update_time - bday_us)
-    monthly_vx_eod_values = monthly_vx_eod_values[monthly_vx_eod_values['Expiration Date'] > current_datetime]
+    monthly_vx_eod_values = monthly_vx_eod_values[monthly_vx_eod_values['Expiration Date'] > last_posted_date]
 
     logger.debug('monthly_vx_eod_values =\n{}'.format(monthly_vx_eod_values))
 
@@ -402,12 +416,10 @@ def is_cboe_cache_current(contract, expdate, cache_path):
     is_current = True
     try:
         # Check if contract is expired or cache is up-to-date.
-        current_datetime = cboe_historical_update_time if(now >= cboe_historical_update_time) else\
-                (cboe_historical_update_time - bday_us)
         logger.debug('expdate = {}'.format(expdate))
         logger.debug('current_datetime = {}'.format(current_datetime))
         # Cache is stale if the contract is active, has not expired.
-        if(current_datetime < expdate):
+        if(last_posted_date < expdate):
             logger.debug('Cache ({}) is out-of-date.'.format(cache_path))
             is_current = False
     except OSError:
@@ -445,33 +457,9 @@ def get_vx_expiration_date(monthyear):
     expdate                 = third_friday_of_mp1 - 30*Day()
     if(not(is_business_day(third_friday_of_mp1) and is_business_day(expdate))):
         expdate = expdate - bday_us
-
-    # Make it timezone-aware.
-    if(expdate.tzinfo is None):
-        expdate = expdate.tz_localize('UTC')
-    else:
-        expdate = expdate.tz_convert('UTC').normalize()
-
     logger.debug('Contract {} expires on {:%Y-%m-%d}.'.format(contract_name, expdate))
     return expdate
 #END: get_vx_expiration_date
-
-def is_business_day(date):
-    """
-    Test if date is a business day.
-
-    Parameters
-    ----------
-    date : datetime
-        Date of interest.
-
-    Returns
-    -------
-    bool
-        Date is a business day.
-    """
-    return(len(pd.date_range(start=date, end=date, freq=bday_us)) > 0)
-#END: is_business_day
 
 def count_business_days(start, end):
     """
@@ -518,8 +506,8 @@ def build_continuous_vx_dataframe(vx_contract_df):
     --------
     Calculate continuous VX data from January 15 2017 to April 14 2017.
     >>> period = pd.date_range(
-    ...     start = datetime(2017,1,15, tzinfo=pytz.timezone('UTC')),
-    ...     end   = datetime(2017,4,14, tzinfo=pytz.timezone('UTC')),
+    ...     start = datetime(2017,1,15),
+    ...     end   = datetime(2017,4,14),
     ...     freq  = cboe.bday_us)
     >>> vx_contract_df = cboe.fetch_vx_contracts(period)
     >>> vx_continuous_df = cboe.build_continuous_vx_dataframe(vx_contract_df)
@@ -739,7 +727,7 @@ def test_plot():
 
     # Setup timeframe to cover from 1/1/2006 to the most recent business day.
     end_date      = (now - bday_us*(not is_business_day(today))).normalize()
-    start_date    = pd.datetime(2006, 1, 1, tzinfo=pytz.timezone('UTC'))
+    start_date    = pd.datetime(2006, 1, 1)
     target_period = pd.date_range(start=start_date, end=end_date, freq=bday_us)
 
     logger.debug('target_period =\n{}'.format(target_period))
