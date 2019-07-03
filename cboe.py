@@ -179,11 +179,12 @@ def fetch_vx_contracts(period, force_update=False):
     vx_contracts = [fetch_vx_monthly_contract(d, force_update=force_update) for d in months]
 
     # Merge homogeneous dataframes (contracts) into a single dataframe, indexed by trading day.
-    vx_contract_df = pd.concat(vx_contracts).set_index('Trade Date', drop=False)
+    vx_contract_df = pd.concat(vx_contracts).set_index('Trade Date', drop=True)
     logger.debug('vx_contract_df (unfiltered)=\n{}'.format(vx_contract_df))
 
     # Exclude invalid entries and entries outside the target timeframe.
-    vx_contract_df = vx_contract_df.loc[period]
+    #vx_contract_df = vx_contract_df.loc[period] #XXX: Results in KeyError due to missing entries for some dates.
+    vx_contract_df = vx_contract_df.loc[str(period[0]):str(period[-1])] # Slice by start-to-end dates. Accept CBOE's data as-is.
     vx_contract_df = vx_contract_df.dropna()
 
     # Fetch today's daily settlement if posted (check current time).
@@ -593,9 +594,8 @@ def build_continuous_vx_dataframe(vx_contract_df):
     timeframe      = vx_contract_df.index.unique()
 
     # Create GroupBy objects.
-    vx_td_gb = vx_contract_df.groupby([pd.Grouper('Trade Date')])      # group by trading day
+    vx_td_gb = vx_contract_df.groupby(vx_contract_df.index) # group by trading day
     vx_ed_gb = vx_contract_df.groupby('Expiration Date') # group by expiration day
-
     logger.debug('vx_td_gb =\n{}'.format(vx_td_gb))
 
     # Get list (series) of expiration dates
