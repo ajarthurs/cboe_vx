@@ -326,7 +326,7 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
     """
     Post message and attachment (optional) to StockTwits using the given access token
     (see https://stocktwits.com/developers/docs/authentication). Messages must be
-    less than 140 characters. If the message contains a link, use the parameters,
+    less than 1000 characters. If the message contains a link, use the parameters,
     link_preamble and link, to get the correct character-count.
 
     Parameters
@@ -364,8 +364,8 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
     logger.debug('total_count = ' + str(total_count))
     logger.debug('payload = ' + str(payload))
 
-    if(total_count > 140):
-        logger.error('Message length, {}, exceeds 140 characters.'.format(total_count))
+    if(total_count > 1000):
+        logger.error('Message length, {}, exceeds 1000 characters.'.format(total_count))
 
     try:
         if(dry_run):
