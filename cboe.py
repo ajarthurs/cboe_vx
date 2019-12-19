@@ -328,11 +328,11 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
         vx_contract = vx_contract[vx_contract['Trade Date'] < vx_expdate]
 
         # Adjust prices prior to March 23 2007 (divide by 10).
-        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Settle'] /= 10.0
-        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'High']   /= 10.0
-        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Low']    /= 10.0
-        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Open']   /= 10.0
-        vx_contract.ix[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Close']  /= 10.0
+        vx_contract.loc[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Settle'] /= 10.0
+        vx_contract.loc[vx_contract['Trade Date'] < cboe_vx_adj_date, 'High']   /= 10.0
+        vx_contract.loc[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Low']    /= 10.0
+        vx_contract.loc[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Open']   /= 10.0
+        vx_contract.loc[vx_contract['Trade Date'] < cboe_vx_adj_date, 'Close']  /= 10.0
 
         logger.debug('Retrieved contract {} from CBOE.'.format(contract_name))
 
