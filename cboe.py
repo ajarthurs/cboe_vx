@@ -392,6 +392,7 @@ def fetch_vx_daily_settlement():
     csv_url = '{}/csv?dt={:%Y-%m-%d}'.format(cboe_current_base_url, today)
     html_url = cboe_current_base_url
     all_eod_values = None
+    try_again = True
     while try_again:
         q = multiprocessing.Queue()
         p = multiprocessing.Process(
