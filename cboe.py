@@ -16,6 +16,9 @@ import pickle
 import sys
 import os
 import logging
+import multiprocessing
+import queue
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,28 @@ now_utc     = now_naive.tz_localize('UTC') # Make it "timezone-aware".
 now_tz      = now_utc.tz_convert('America/Chicago') # Needed to calculate today's date in Chicago time.
 now         = now_utc.astimezone('America/Chicago').replace(tzinfo=None) # Timezone-naive date and time in Chicago time (pd.Timestamp)
 today       = pd.to_datetime(now.date()) # Timezone-naive date in Chicago time (pd.Timestamp normalized)
+# Miscellaneous
+timeout_sec = 5 # Timeout in seconds when contacting CBOE
+delay_sec = 1 # Delay in seconds between requests to CBOE. Note that this value is factored out of timeout so that delay can be greater than the specified timeout. In other words, total timeout is the sum of `timeout_sec` and `delay_sec`.
+
+def read_csv(q, *argv, **kwargs):
+    """
+    Multiprocessing wrapper call to Pandas read_csv. Needed to enforce timeout on pd.read_csv().
+
+    Parameters
+    ----------
+    q : multiprocessing.Queue()
+        A queue to push results of pd.read_csv() into.
+
+    Remaining arguments are identical to that of pandas.read_csv()
+
+    Returns
+    -------
+    Void
+    """
+    time.sleep(delay_sec)
+    results = pd.read_csv(*argv, **kwargs)
+    q.put(results)
 
 def is_business_day(date):
     """
@@ -262,17 +287,32 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
             url = '{}/CFE_{}{:%y}_VX.csv'.format(cboe_old_historical_base_url, code, monthyear)
         else: # Fetch from CBOE's new site.
             url = '{}/VX/{:%Y-%m-%d}'.format(cboe_historical_base_url, vx_expdate)
-        try:
-            vx_contract = pd.read_csv(
-                url,
-                header=1,
-                names=['Trade Date','Futures','Open','High','Low','Close','Settle',
-                    'Change','Total Volume','EFP','Open Interest'])
-            logger.debug('Retrieved VX contract {} from {}'.format(contract_name, vx_contract))
-        except:
-            logger.exception('Failed to download VX contract {} from {}'.format(contract_name, url))
-            raise
-
+        try_again = True
+        vx_contract = None
+        while try_again:
+            q = multiprocessing.Queue()
+            p = multiprocessing.Process(
+                target=read_csv,
+                args=(q, url),
+                kwargs=dict(
+                    header=1,
+                    names=['Trade Date','Futures','Open','High','Low','Close','Settle',
+                        'Change','Total Volume','EFP','Open Interest']
+                    ),
+                )
+            p.start()
+            try:
+                vx_contract = q.get(True, timeout_sec + delay_sec)
+                try_again = False
+            except queue.Empty: # timed out
+                p.terminate()
+                p.join()
+                logger.debug('Timed out. Retrying...')
+            except:
+                logger.exception('Failed to download VX contract {} from {}'.format(contract_name, url))
+                raise
+            p.join()
+        logger.debug('Retrieved VX contract {} from {}'.format(contract_name, vx_contract))
         try:
             if monthyear < cboe_vx_new_start_date: # Must get older data from CBOE's old site.
                 # Parse dates (assuming MM/DD/YYYY format).
@@ -346,13 +386,30 @@ def fetch_vx_daily_settlement():
     #    ...
     csv_url = '{}/csv?dt={:%Y-%m-%d}'.format(cboe_current_base_url, today)
     html_url = cboe_current_base_url
-    try:
-        all_eod_values = pd.read_csv(csv_url,
-                header=0, names=['Product', 'Symbol', 'Expiration Date', 'Price'])
-        logger.debug('Fetched data from CSV at {}.'.format(csv_url))
-    except:
-        logger.exception('Failed to download daily settlement values from CBOE.\ncsv_url = {}\nhtml_url = {}'.format(csv_url, html_url))
-        raise
+    all_eod_values = None
+    while try_again:
+        q = multiprocessing.Queue()
+        p = multiprocessing.Process(
+            target=read_csv,
+            args=(q, csv_url),
+            kwargs=dict(
+                header=0,
+                names=['Product', 'Symbol', 'Expiration Date', 'Price']
+                ),
+            )
+        p.start()
+        try:
+            all_eod_values = q.get(True, timeout_sec + delay_sec)
+            try_again = False
+        except queue.Empty: # timed out
+            p.terminate()
+            p.join()
+            logger.debug('Timed out. Retrying...')
+        except:
+            logger.exception('Failed to download daily settlement values from CBOE.\ncsv_url = {}\nhtml_url = {}'.format(csv_url, html_url))
+            raise
+        p.join()
+    logger.debug('Fetched data from CSV at {}.'.format(csv_url))
 
     logger.debug('all_eod_values =\n' + str(all_eod_values))
     vx_eod_values = all_eod_values[all_eod_values['Product'] == 'VX']
@@ -683,40 +740,59 @@ def fetch_index(index):
     pd.DataFrame
         Index data.
     """
-    try:
-        import urllib
-        from bs4 import BeautifulSoup
-        url = '{}/{}'.format(cboe_historical_index_base_url, cboe_index[index])
-        logger.debug('Fetching historical data from {}'.format(url))
-        index_df = pd.read_csv(url,
-                skiprows=2, header=1, names=['Date', 'Open', 'High', 'Low', 'Close'])
-        logger.debug('index_df = \n{}'.format(index_df))
-        stoday = '{:%m/%d/%Y}'.format(today)
-        if(stoday not in index_df['Date'].values):
-            # Fetch today's data from Yahoo! Finance
-            url = 'https://finance.yahoo.com/quote/^{}'.format(index)
-            logger.debug('Fetching {} quote from {}'.format(index, url))
-            quote_page = urllib.request.urlopen(url)
-            quote_soup = BeautifulSoup(quote_page, 'html5lib')
-            close_text = quote_soup.select('div[id="quote-header-info"]')[0].select('span[data-reactid]')[1].text
-            logger.debug('close_text = {}'.format(close_text))
-            close = float(close_text)
-            last_entry = pd.DataFrame([
-                dict(
-                    Date=stoday, Open=np.nan, High=np.nan, Low=np.nan,
-                    Close=close
-                    )
-                ])
-            index_df = index_df.append(last_entry)
-            logger.debug('Appending to dataframe:\n{}'.format(last_entry))
-        # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
-        index_df['Date'] = pd.to_datetime(index_df['Date'],
-                format='%m/%d/%Y')
-        index_df = index_df.set_index(index_df['Date'], drop=True)
-        logger.debug('Fetched {} data:\n{}'.format(index, index_df))
-    except:
-        logger.exception('Failed to download {} data.'.format(index))
-        raise
+    import urllib
+    from bs4 import BeautifulSoup
+    url = '{}/{}'.format(cboe_historical_index_base_url, cboe_index[index])
+    logger.debug('Fetching historical data from {}'.format(url))
+    try_again = True
+    index_df = None
+    while try_again:
+        q = multiprocessing.Queue()
+        p = multiprocessing.Process(
+            target=read_csv,
+            args=(q, url),
+            kwargs=dict(
+                skiprows=2,
+                header=1,
+                names=['Date', 'Open', 'High', 'Low', 'Close']
+                ),
+            )
+        p.start()
+        try:
+            index_df = q.get(True, timeout_sec + delay_sec)
+            try_again = False
+        except queue.Empty: # timed out
+            p.terminate()
+            p.join()
+            logger.debug('Timed out. Retrying...')
+        except:
+            logger.exception('Failed to download {} data.'.format(index))
+            raise
+        p.join()
+    logger.debug('index_df = \n{}'.format(index_df))
+    stoday = '{:%m/%d/%Y}'.format(today)
+    if(stoday not in index_df['Date'].values):
+        # Fetch today's data from Yahoo! Finance
+        url = 'https://finance.yahoo.com/quote/^{}'.format(index)
+        logger.debug('Fetching {} quote from {}'.format(index, url))
+        quote_page = urllib.request.urlopen(url)
+        quote_soup = BeautifulSoup(quote_page, 'html5lib')
+        close_text = quote_soup.select('div[id="quote-header-info"]')[0].select('span[data-reactid]')[1].text
+        logger.debug('close_text = {}'.format(close_text))
+        close = float(close_text)
+        last_entry = pd.DataFrame([
+            dict(
+                Date=stoday, Open=np.nan, High=np.nan, Low=np.nan,
+                Close=close
+                )
+            ])
+        index_df = index_df.append(last_entry)
+        logger.debug('Appending to dataframe:\n{}'.format(last_entry))
+    # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
+    index_df['Date'] = pd.to_datetime(index_df['Date'],
+            format='%m/%d/%Y')
+    index_df = index_df.set_index(index_df['Date'], drop=True)
+    logger.debug('Fetched {} data:\n{}'.format(index, index_df))
     return(index_df)
 #END: fetch_index
 
