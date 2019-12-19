@@ -31,7 +31,7 @@ now_tz      = now_utc.tz_convert('America/Chicago') # Needed to calculate today'
 now         = now_utc.astimezone('America/Chicago').replace(tzinfo=None) # Timezone-naive date and time in Chicago time (pd.Timestamp)
 today       = pd.to_datetime(now.date()) # Timezone-naive date in Chicago time (pd.Timestamp normalized)
 # Miscellaneous
-timeout_sec = 5 # Timeout in seconds when contacting CBOE
+timeout_sec = 10 # Timeout in seconds when contacting CBOE
 delay_sec = 1 # Delay in seconds between requests to CBOE. Note that this value is factored out of timeout so that delay can be greater than the specified timeout. In other words, total timeout is the sum of `timeout_sec` and `delay_sec`.
 
 def read_csv(q, *argv, **kwargs):
