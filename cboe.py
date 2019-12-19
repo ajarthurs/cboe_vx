@@ -50,7 +50,12 @@ def read_csv(q, *argv, **kwargs):
     None
     """
     time.sleep(delay_sec)
-    results = pd.read_csv(*argv, **kwargs)
+    results = None
+    try:
+        results = pd.read_csv(*argv, **kwargs)
+    except:
+        logger.exception('Failed to fetch CSV.')
+        raise
     q.put(results)
 
 def is_business_day(date):
