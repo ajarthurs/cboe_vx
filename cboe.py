@@ -489,21 +489,21 @@ def is_cboe_cache_current(contract, expdate, cache_path):
     bool
         Contract's cache is up-to-date.
     """
-    is_current = True
-    # Check if contract is expired or cache is up-to-date.
-    logger.debug('expdate = {}'.format(expdate))
-    logger.debug('current_datetime = {}'.format(last_posted_date))
-    # Cache is stale if the contract is active, has not expired.
-    if(last_posted_date < expdate):
+    try:
+        (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(cache_path)
+    except:
+        # Contract is not cached; therefore, cache is not up-to-date.
+        return False
+    # Cache is stale if the contract has not expired and cache has not been updated since CBOE's daily update.
+    last_modified_datetime = pd.to_datetime(mtime, unit='s', utc=True).astimezone('America/Chicago').replace(tzinfo=None)
+    if(last_posted_date < expdate and last_modified_datetime < cboe_historical_update_datetime):
+        logger.debug('expdate = {}'.format(expdate))
+        logger.debug('last_posted_datetime = {}'.format(last_posted_date))
+        logger.debug('cboe_historical_update_datetime = {}'.format(cboe_historical_update_datetime))
+        logger.debug('last_modified_datetime = {}'.format(last_modified_datetime))
         logger.debug('Cache ({}) is out-of-date.'.format(cache_path))
-        is_current = False
-    else:
-        try:
-            os.stat(cache_path)
-        except:
-            # Contract is not cached; therefore, cache is not up-to-date.
-            is_current = False
-    return(is_current)
+        return False
+    return True
 #END: is_cboe_cache_current
 
 def get_vx_expiration_date(monthyear):
