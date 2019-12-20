@@ -315,11 +315,12 @@ def update_vx_continuous_df_googledrive(filename='vf.xlsx', fileId='0B4HikxB_9ul
     drive_service = discovery.build('drive', 'v3', http=http_auth, cache_discovery=False)
 
     # Upload
-    update_file(drive_service,
-            fileId=fileId,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            filename=filename
-            )
+    update_file(
+        drive_service,
+        fileId=fileId,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        filename=filename
+        )
 #END: update_vx_continuous_df_googledrive
 
 def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, attachment=None, dry_run=False):
@@ -367,10 +368,10 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
     if(total_count > 1000):
         logger.error('Message length, {}, exceeds 1000 characters.'.format(total_count))
 
+    if(dry_run):
+        logger.debug('Dry-run is enabled so will not post.')
+        return
     try:
-        if(dry_run):
-            logger.debug('Dry-run is enabled so will not post.')
-            return
         # Post message.
         r = requests.post('https://api.stocktwits.com/api/2/messages/create.json', data=payload,
                 files=files)

@@ -57,6 +57,7 @@ def read_csv(q, *argv, **kwargs):
         logger.exception('Failed to fetch CSV.')
         raise
     q.put(results)
+#END: read_csv
 
 def is_business_day(date):
     """
