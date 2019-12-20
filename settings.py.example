@@ -5,30 +5,27 @@
 # 2. Fill in the variables below
 
 # Application settings.
-st_years = 2
-mt_years = 5
+st_years          = 2
+mt_years          = 5
 check_for_holiday = True
-export_excel = True
+export_excel      = False
+
 
 # StockTwits settings.
 # (see https://stocktwits.com/developers/docs/authentication)
-st_dry_run        = True
-st_access_token   = 'my-StockTwits-access-token'
+st_dry_run      = True
+st_access_token = 'my-StockTwits-access-token'
+
 # Short-term VX ETPs
-st_post_st_cash_tags = True
-st_st_cash_tags      = '$VIX $VXX $XIV $VIIX $SVXY $UVXY $TVIX'
-st_post_st_chart     = True
-st_st_preamble       = st_st_cash_tags if st_post_st_cash_tags else '(TEST)'
-st_st_message        = '{} Short-term VIX futures settled {:.3f}({:+.1%}).'
-st_st_link_preamble  = ' DATA:'
-st_st_link           = None
-st_st_chart_file     = 'st_chart.png'
+st_st_message    = """$VXX STCMVF settled @ {:.3f} ({:+.1%}).
+
+The short-term constant-maturity VIX futures (STCMVF) is a weighted average of the current front- and back-month VIX futures contracts. It is a benchmark for the short-term volatility ETPs (e.g., VXX, VIXY, SVXY, UVXY, TVIX) and compares to the S&P 500 30-day volatility index ($VIX), which is derived from $SPX options. STCMVF is an ideal but inaccurate reflection of portfolios held by the volatility ETPs, and STCMVF resets its value on a daily basis, discounting loss from prior contracts; SPVIXST is another benchmark that includes prior contract loss. The posted quote is derived from VIX futures daily settlement."""
+st_post_st_chart = True
+st_st_chart_file = 'st_chart.png'
+
 # Mid-term VX ETPs
-st_post_mt_cash_tags = True
-st_mt_cash_tags      = '$VXZ $ZIV $VIIZ $VIXM $TVIZ'
-st_post_mt_chart     = True
-st_mt_preamble       = st_mt_cash_tags if st_post_mt_cash_tags else '(TEST)'
-st_mt_message        = '{} Mid-term VIX futures settled {:.3f}({:+.1%}).'
-st_mt_link_preamble  = ' DATA:'
-st_mt_link           = None
-st_mt_chart_file     = 'mt_chart.png'
+st_mt_message    = """$VXZ MTCMVF settled @ {:.3f} ({:+.1%}).
+
+The mid-term constant-maturity VIX futures (MTCMVF) is a weighted average of the current 4th, 5th, 6th, and 7th month VIX futures contracts. It is a benchmark for the mid-term volatility ETPs (e.g., VXZ, VIXM, ZIV, VIIZ, TVIZ) and compares to the S&P 500 6-month volatility index (VIX6M), which is derived from $SPX options. MTCMVF is an ideal but inaccurate reflection of portfolios held by the volatility ETPs, and MTCMVF resets its value on a daily basis, discounting loss from prior contracts; SPVIXMT is another benchmark that includes prior contract loss. The posted quote is derived from VIX futures daily settlement."""
+st_post_mt_chart = True
+st_mt_chart_file = 'mt_chart.png'

@@ -97,8 +97,8 @@ def main():
     logger.debug('vx_today =\n{}'.format(vx_today))
 
     # Post to StockTwits.
-    st_st_message = settings.st_st_message.format(settings.st_st_preamble, stcmvf_today, stcmvf_percent)
-    st_mt_message = settings.st_mt_message.format(settings.st_mt_preamble, mtcmvf_today, mtcmvf_percent)
+    st_st_message = settings.st_st_message.format(stcmvf_today, stcmvf_percent)
+    st_mt_message = settings.st_mt_message.format(mtcmvf_today, mtcmvf_percent)
     logger.debug('st_st_message = {}'.format(st_st_message))
     logger.debug('st_mt_message = {}'.format(st_mt_message))
 
@@ -113,12 +113,18 @@ def main():
     else:
         st_mt_attachment = None
 
-    post_to_stocktwits(settings.st_access_token, st_st_message,
-            link_preamble=settings.st_st_link_preamble, link=settings.st_st_link,
-            attachment=st_st_attachment, dry_run=settings.st_dry_run)
-    post_to_stocktwits(settings.st_access_token, st_mt_message,
-            link_preamble=settings.st_mt_link_preamble, link=settings.st_mt_link,
-            attachment=st_mt_attachment, dry_run=settings.st_dry_run)
+    post_to_stocktwits(
+        settings.st_access_token,
+        st_st_message,
+        attachment=st_st_attachment,
+        dry_run=settings.st_dry_run
+        )
+    post_to_stocktwits(
+        settings.st_access_token,
+        st_mt_message,
+        attachment=st_mt_attachment,
+        dry_run=settings.st_dry_run
+        )
 #END: main
 
 def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, title_b):
@@ -327,8 +333,7 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
     """
     Post message and attachment (optional) to StockTwits using the given access token
     (see https://stocktwits.com/developers/docs/authentication). Messages must be
-    less than 1000 characters. If the message contains a link, use the parameters,
-    link_preamble and link, to get the correct character-count.
+    less than 1000 characters.
 
     Parameters
     ----------
@@ -338,12 +343,6 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
     message : str
         Message to be posted.
 
-    link_preamble : str
-        Text to add before the link. Ignored is link is not specified.
-
-    link : str
-        Link to add at end of message. Counts as 23 characters plus len(link_preamble) if specified.
-
     attachment : str
         Path to image to be attached with message. File formats accepted: JPG, PNG, and
         GIF under 2MB. Counts as 24 characters if specified.
@@ -352,9 +351,6 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
         Do not actually post message.
     """
     total_count = len(message)
-    if(link):
-        message = '{}{}{}'.format(message, link_preamble, link)
-        total_count += len(link_preamble) + 23
     payload = {'access_token':access_token, 'body':message}
     if(attachment):
         (attachment_type, encoding) = mimetypes.MimeTypes().guess_type(attachment)
