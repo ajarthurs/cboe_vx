@@ -202,7 +202,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     plt.setp(hist_axes.get_yticklabels(), visible=False) # hide occurence labels on histogram
     plt.setp(hist_axes.get_yticklines(),  visible=False) # hide occurence axis lines on histogram
     xs, xe = hist_axes.get_xlim()
-    xstep  = 5.0
+    xstep  = 10.0
     xclamp_a = np.min(data_a)
     xclamp_b = np.min(data_b)
     xclamp   = np.min([xclamp_a, xclamp_b])
