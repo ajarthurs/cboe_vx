@@ -18,6 +18,7 @@ import ssl
 import mimetypes
 import pickle
 import sys
+import time
 import pytz
 import logging
 import logging.config
@@ -367,20 +368,24 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
     if(dry_run):
         logger.debug('Dry-run is enabled so will not post.')
         return
-    try:
-        # Post message.
-        r = requests.post('https://api.stocktwits.com/api/2/messages/create.json', data=payload,
-                files=files)
-        # Check StockTwit's response.
-        r = r.json()
-        logger.debug('Response from StockTwits = ' + str(r))
-        status = r['response']['status']
-        logger.debug('Status from StockTwits = ' + str(status))
-        if(status != 200):
-            raise Exception('Received invalid response from StockTwits: ' + str(status) + ': ' + str(r))
-    except:
-        logger.exception('Failed to post to StockTwits.')
-        raise
+    posted = False
+    while not posted:
+        try:
+            # Post message.
+            r = requests.post('https://api.stocktwits.com/api/2/messages/create.json', data=payload,
+                    files=files)
+            # Check StockTwit's response.
+            r = r.json()
+            logger.debug('Response from StockTwits = ' + str(r))
+            status = r['response']['status']
+            logger.debug('Status from StockTwits = ' + str(status))
+            if(status != 200):
+                raise Exception('Received invalid response from StockTwits: ' + str(status) + ': ' + str(r))
+            else:
+                posted = True
+        except:
+            logger.exception('Failed to post to StockTwits.')
+            time.sleep(1)
 
     logger.info('Posted message: ' + message)
 #END: post_to_stocktwits
