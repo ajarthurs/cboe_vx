@@ -2,6 +2,7 @@
 
 """Read and process futures data from CBOE. Note that the current timezone is assumed to be CBOE's time (America/Chicago), avoiding the use of timezone-aware timestamps that Pandas does not support in computations."""
 
+import datetime
 import numpy as np
 import pandas as pd
 from holiday import USMarketHolidayCalendar
@@ -80,8 +81,8 @@ def is_business_day(date):
 cboe_historical_base_url = 'https://markets.cboe.com/us/futures/market_statistics/historical_data/products/csv' # CBOE's new site.
 cboe_old_historical_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse' # CBOE's old site.
 cboe_base_millennium     = 2000
-cboe_vx_new_start_date   = pd.datetime(2013, 1, 2) # Earliest date recorded on CBOE's new site.
-cboe_vx_adj_date         = pd.datetime(2007, 3, 23)
+cboe_vx_new_start_date   = datetime.datetime(2013, 1, 2) # Earliest date recorded on CBOE's new site.
+cboe_vx_adj_date         = datetime.datetime(2007, 3, 23)
 #                  J    F    M    A    M    J    J    A    S    O    N    D
 #                  a    e    a    p    a    u    u    u    e    c    o    e
 #                  n    b    r    r    y    n    l    g    p    t    v    c
