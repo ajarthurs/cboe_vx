@@ -94,12 +94,12 @@ cboe_index = {'VIX' : 'vixcurrent.csv', 'VIX6M' : 'vix6mdailyprices.csv'}
 # Time when CBOE updates historical futures data.
 cboe_historical_update_time     = pd.to_timedelta('10:00:00') # Chicago time
 cboe_historical_update_datetime = today + cboe_historical_update_time
-last_posted_date                = today - bday_us*(not is_business_day(today) or (now < cboe_historical_update_datetime))
+last_posted_date                = today - bday_us*int(not is_business_day(today) or (now < cboe_historical_update_datetime))
 
 # Time when CBOE updates daily settlement values.
 cboe_daily_update_time     = pd.to_timedelta('15:20:00') # Chicago time
 cboe_daily_update_datetime = today + cboe_daily_update_time
-last_settled_date          = today - bday_us*(not is_business_day(today) or (now < cboe_daily_update_datetime))
+last_settled_date          = today - bday_us*int(not is_business_day(today) or (now < cboe_daily_update_datetime))
 
 # References to CBOE's daily settlement futures data.
 cboe_current_base_url = 'https://markets.cboe.com/us/futures/market_statistics/settlement'
