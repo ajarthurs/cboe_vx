@@ -88,7 +88,7 @@ cboe_vx_adj_date         = datetime.datetime(2007, 3, 23)
 #                  n    b    r    r    y    n    l    g    p    t    v    c
 month_code = ['', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
 #             0    1    2    3    4    5    6    7    8    9   10   11   12
-cboe_historical_index_base_url = 'http://www.cboe.com/publish/scheduledtask/mktdata/datahouse'
+cboe_historical_index_base_url = 'https://ww2.cboe.com/publish/scheduledtask/mktdata/datahouse'
 cboe_index = {'VIX' : 'vixcurrent.csv', 'VIX6M' : 'vix6mdailyprices.csv'}
 
 # Time when CBOE updates historical futures data.
