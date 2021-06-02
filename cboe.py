@@ -88,8 +88,8 @@ cboe_vx_adj_date         = datetime.datetime(2007, 3, 23)
 #                  n    b    r    r    y    n    l    g    p    t    v    c
 month_code = ['', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'Q', 'U', 'V', 'X', 'Z']
 #             0    1    2    3    4    5    6    7    8    9   10   11   12
-cboe_historical_index_base_url = 'https://ww2.cboe.com/publish/scheduledtask/mktdata/datahouse'
-cboe_index = {'VIX' : 'vixcurrent.csv', 'VIX6M' : 'vix6mdailyprices.csv'}
+cboe_historical_index_base_url = 'https://cdn.cboe.com/api/global/us_indices/daily_prices'
+cboe_index = {'VIX' : 'VIX_History.csv', 'VIX6M' : 'VIX6M_History.csv'}
 
 # Time when CBOE updates historical futures data.
 cboe_historical_update_time     = pd.to_timedelta('10:00:00') # Chicago time
@@ -760,7 +760,7 @@ def fetch_index(index):
             target=read_csv,
             args=(q, url),
             kwargs=dict(
-                skiprows=2,
+                skiprows=1,
                 header=1,
                 names=['Date', 'Open', 'High', 'Low', 'Close']
                 ),
