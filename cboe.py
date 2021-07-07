@@ -748,7 +748,7 @@ def fetch_index(index):
     pd.DataFrame
         Index data.
     """
-    import urllib
+    import urllib.request
     from bs4 import BeautifulSoup
     url = '{}/{}'.format(cboe_historical_index_base_url, cboe_index[index])
     logger.debug('Fetching historical data from {}'.format(url))
