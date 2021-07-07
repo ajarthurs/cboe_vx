@@ -783,7 +783,14 @@ def fetch_index(index):
         # Fetch today's data from Yahoo! Finance
         url = 'https://finance.yahoo.com/quote/%5E{}'.format(index)
         logger.debug('Fetching {} quote from {}'.format(index, url))
-        quote_page = urllib.request.urlopen(url)
+        req = urllib.request.Request(
+            url,
+            data=None,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36',
+            },
+        )
+        quote_page = urllib.request.urlopen(req)
         quote_soup = BeautifulSoup(quote_page, 'html5lib')
         close_text = quote_soup.select('div[id="quote-header-info"]')[0].select('span[data-reactid="33"]')[0].text
         logger.debug('close_text = {}'.format(close_text))
