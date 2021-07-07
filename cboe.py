@@ -781,7 +781,7 @@ def fetch_index(index):
     stoday = '{:%m/%d/%Y}'.format(today)
     if(stoday not in index_df['Date'].values):
         # Fetch today's data from Yahoo! Finance
-        url = 'https://finance.yahoo.com/quote/^{}'.format(index)
+        url = 'https://finance.yahoo.com/quote/%5E{}'.format(index)
         logger.debug('Fetching {} quote from {}'.format(index, url))
         quote_page = urllib.request.urlopen(url)
         quote_soup = BeautifulSoup(quote_page, 'html5lib')
