@@ -792,7 +792,7 @@ def fetch_index(index):
         )
         quote_page = urllib.request.urlopen(req)
         quote_soup = BeautifulSoup(quote_page, 'html5lib')
-        close_text = quote_soup.select('div[id="quote-header-info"]')[0].select('span[data-reactid="32"]')[0].text
+        close_text = quote_soup.select('div[id="quote-header-info"]')[0].select('span[data-reactid="30"]')[0].text
         logger.debug('close_text = {}'.format(close_text))
         close = float(close_text)
         last_entry = pd.DataFrame([
