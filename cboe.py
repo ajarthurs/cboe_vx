@@ -78,7 +78,7 @@ def is_business_day(date):
 #END: is_business_day
 
 # References to CBOE's historical futures data.
-cboe_historical_base_url = 'https://markets.cboe.com/us/futures/market_statistics/historical_data/products/csv' # CBOE's new site.
+cboe_historical_base_url = 'https://cdn.cboe.com/data/us/futures/market_statistics/historical_data' # CBOE's new site.
 cboe_old_historical_base_url = 'https://cfe.cboe.com/Publish/ScheduledTask/MktData/datahouse' # CBOE's old site.
 cboe_base_millennium     = 2000
 cboe_vx_new_start_date   = datetime.datetime(2013, 1, 2) # Earliest date recorded on CBOE's new site.
@@ -293,7 +293,7 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
         if monthyear < cboe_vx_new_start_date: # Must get older data from CBOE's old site.
             url = '{}/CFE_{}{:%y}_VX.csv'.format(cboe_old_historical_base_url, code, monthyear)
         else: # Fetch from CBOE's new site.
-            url = '{}/VX/{:%Y-%m-%d}'.format(cboe_historical_base_url, vx_expdate)
+            url = '{}/VX/VX_{:%Y-%m-%d}.csv'.format(cboe_historical_base_url, vx_expdate)
         try_again = True
         vx_contract = None
         while try_again:
