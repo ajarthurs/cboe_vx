@@ -235,7 +235,7 @@ def fetch_vx_contracts(period, force_update=False):
             'Change':np.nan,'Total Volume':np.nan,'EFP':np.nan,'Open Interest':np.nan}
             for i in vx_ds_df.index])
         current_df = current_df.set_index(current_df['Trade Date'], drop=False)
-        vx_contract_df = vx_contract_df.append(current_df)
+        vx_contract_df = pd.concat([vx_contract_df, current_df])
 
     return(vx_contract_df)
 #END: fetch_vx_contracts
@@ -801,7 +801,7 @@ def fetch_index(index):
                 Close=close
                 )
             ])
-        index_df = index_df.append(last_entry)
+        index_df = pd.concat([index_df, last_entry])
         logger.debug('Appending to dataframe:\n{}'.format(last_entry))
     # Parse dates (assuming MM/DD/YYYY format), set timezone to UTC, and reset to midnight.
     index_df['Date'] = pd.to_datetime(index_df['Date'],
