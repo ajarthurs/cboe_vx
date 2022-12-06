@@ -5,10 +5,12 @@
 # 2. Fill in the variables below
 
 # Application settings.
-st_years          = 2
-mt_years          = 5
-check_for_holiday = True
-export_excel      = False
+st_years           = 2
+st_histogram_xstep = 5.0
+mt_years           = 5
+mt_histogram_xstep = 10.0
+check_for_holiday  = True
+export_excel       = False
 
 
 # StockTwits settings.

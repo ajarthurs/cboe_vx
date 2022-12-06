@@ -72,11 +72,11 @@ def main():
 
     if(st_post_st_chart):
         # Plot short-term VX data to image file.
-        generate_vx_figure(vx_continuous_df, settings.st_years, 'VIX', 'STCMVF', 'VIX', 'Short-Term Constant-Maturity VIX Futures (STCMVF)')
+        generate_vx_figure(vx_continuous_df, settings.st_years, 'VIX', 'STCMVF', 'VIX', 'Short-Term Constant-Maturity VIX Futures (STCMVF)', settings.st_histogram_xstep)
         plt.savefig(settings.st_st_chart_file, dpi=300)
     if(st_post_mt_chart):
         # Plot mid-term VX data to image file.
-        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VIX6M', 'MTCMVF', 'VIX6M', 'Mid-Term Constant-Maturity VIX Futures (MTCMVF)')
+        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VIX6M', 'MTCMVF', 'VIX6M', 'Mid-Term Constant-Maturity VIX Futures (MTCMVF)', settings.mt_histogram_xstep)
         plt.savefig(settings.st_mt_chart_file, dpi=300)
 
     # Dump continuous futures dataframe to Excel.
@@ -128,7 +128,7 @@ def main():
         )
 #END: main
 
-def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, title_b):
+def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, title_b, histogram_xstep):
     """
     Create the continuous VX figure, which plots column A and column B over time, the
     percent difference between the two, and their histograms.
@@ -153,6 +153,9 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
 
     title_b : str
         Title of second data-series in vx_continuous_df to plot.
+
+    histogram_xstep : float
+        Volatility histogram's x-axis step value.
     """
     data_a = vx_continuous_df[cboe.today-years*365*cboe.Day():][column_a].dropna()
     data_b = vx_continuous_df[cboe.today-years*365*cboe.Day():][column_b].dropna()
@@ -203,7 +206,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     plt.setp(hist_axes.get_yticklabels(), visible=False) # hide occurence labels on histogram
     plt.setp(hist_axes.get_yticklines(),  visible=False) # hide occurence axis lines on histogram
     xs, xe = hist_axes.get_xlim()
-    xstep  = 10.0
+    xstep  = histogram_xstep
     xclamp_a = np.min(data_a)
     xclamp_b = np.min(data_b)
     xclamp   = np.min([xclamp_a, xclamp_b])
@@ -212,7 +215,7 @@ def generate_vx_figure(vx_continuous_df, years, column_a, column_b, title_a, tit
     xs = np.sign(xs)*np.floor(np.abs(xs)/xstep)*xstep # round-down to nearest xstep
     xe = np.sign(xe)*np.ceil(np.abs(xe)/xstep)*xstep # round-up to nearest xstep
     logger.debug('xs, xe (after)= {}, {}'.format(xs, xe))
-    plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by 5
+    plt.xticks(np.arange(xs, xe, xstep)) # set rounded x-values stepped by xstep
     plt.xlabel('Volatility Level')
     plt.title('Histogram')
     plt.legend(bbox_to_anchor=(0.5, -0.25), loc='upper center', ncol=1) # place legend below histogram
