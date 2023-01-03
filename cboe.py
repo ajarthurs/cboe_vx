@@ -26,8 +26,7 @@ logger = logging.getLogger(__name__)
 # References to the US Federal Government Holiday Calendar and current time.
 calendar_us = USMarketHolidayCalendar()
 bday_us     = CDay(calendar=calendar_us)
-now_naive   = pd.to_datetime('now') # Timezone-naive implies UTC.
-now_utc     = now_naive.tz_localize('UTC') # Make it "timezone-aware".
+now_utc     = pd.to_datetime('now', utc=True) # Timezone-aware.
 now_tz      = now_utc.tz_convert('America/Chicago') # Needed to calculate today's date in Chicago time.
 now         = now_utc.astimezone('America/Chicago').replace(tzinfo=None) # Timezone-naive date and time in Chicago time (pd.Timestamp)
 today       = pd.to_datetime(now.date()) # Timezone-naive date in Chicago time (pd.Timestamp normalized)
