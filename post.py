@@ -91,15 +91,21 @@ def main():
     stcmvf_yesterday = vx_yesterday['STCMVF']
     stcmvf_today     = vx_today['STCMVF']
     stcmvf_percent   = (stcmvf_today / stcmvf_yesterday) - 1.0
+    vix              = vx_continuous_df['VIX'].iloc[-1]
+    stcmvf_premium   = (stcmvf_today / vix) - 1.0
+    stcmvf_verb      = 'charging' if stcmvf_premium > 0 else 'paying'
     mtcmvf_yesterday = vx_yesterday['MTCMVF']
     mtcmvf_today     = vx_today['MTCMVF']
     mtcmvf_percent   = (mtcmvf_today / mtcmvf_yesterday) - 1.0
+    vix6m            = vx_continuous_df['VIX6M'].iloc[-1]
+    mtcmvf_premium   = (mtcmvf_today / vix6m) - 1.0
+    mtcmvf_verb      = 'charging' if mtcmvf_premium > 0 else 'paying'
     logger.debug('vx_yesterday =\n{}'.format(vx_yesterday))
     logger.debug('vx_today =\n{}'.format(vx_today))
 
     # Post to StockTwits.
-    st_st_message = settings.st_st_message.format(stcmvf_today, stcmvf_percent)
-    st_mt_message = settings.st_mt_message.format(mtcmvf_today, mtcmvf_percent)
+    st_st_message = settings.st_st_message.format(stcmvf_today, stcmvf_percent, stcmvf_premium, vix, stcmvf_verb, abs(stcmvf_premium) / 30.0)
+    st_mt_message = settings.st_mt_message.format(mtcmvf_today, mtcmvf_percent, mtcmvf_premium, vix6m, mtcmvf_verb, abs(mtcmvf_premium) / 180.0)
     logger.debug('st_st_message = {}'.format(st_st_message))
     logger.debug('st_mt_message = {}'.format(st_mt_message))
 
