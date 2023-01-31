@@ -56,19 +56,10 @@ def main():
         success = True
     except:
         success = False
-    st_post_st_chart   = settings.st_post_st_chart and success
+    st_post_st_chart = settings.st_post_st_chart and success
+    st_post_mt_chart = settings.st_post_mt_chart and success
     if(success):
         vx_continuous_df['VIX'] = vix_df['Close']
-
-    # Add 'VIX6M' column to continuous dataframe.
-    try:
-        vxmt_df = cboe.fetch_index('VIX6M')
-        success = True
-    except:
-        success = False
-    st_post_mt_chart   = settings.st_post_mt_chart and success
-    if(success):
-        vx_continuous_df['VIX6M'] = vxmt_df['Close']
 
     if(st_post_st_chart):
         # Plot short-term VX data to image file.
@@ -76,7 +67,7 @@ def main():
         plt.savefig(settings.st_st_chart_file, dpi=300)
     if(st_post_mt_chart):
         # Plot mid-term VX data to image file.
-        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VIX6M', 'MTCMVF', 'VIX6M', 'Mid-Term Constant-Maturity VIX Futures (MTCMVF)', settings.mt_histogram_xstep)
+        generate_vx_figure(vx_continuous_df, settings.mt_years, 'VIX', 'MTCMVF', 'VIX', 'Mid-Term Constant-Maturity VIX Futures (MTCMVF)', settings.mt_histogram_xstep)
         plt.savefig(settings.st_mt_chart_file, dpi=300)
 
     # Dump continuous futures dataframe to Excel.
@@ -97,15 +88,14 @@ def main():
     mtcmvf_yesterday = vx_yesterday['MTCMVF']
     mtcmvf_today     = vx_today['MTCMVF']
     mtcmvf_percent   = (mtcmvf_today / mtcmvf_yesterday) - 1.0
-    vix6m            = vx_continuous_df['VIX6M'].iloc[-1]
-    mtcmvf_premium   = (mtcmvf_today / vix6m) - 1.0
+    mtcmvf_premium   = (mtcmvf_today / vix) - 1.0
     mtcmvf_verb      = 'charging' if mtcmvf_premium > 0 else 'paying'
     logger.debug('vx_yesterday =\n{}'.format(vx_yesterday))
     logger.debug('vx_today =\n{}'.format(vx_today))
 
     # Post to StockTwits.
     st_st_message = settings.st_st_message.format(stcmvf_today, stcmvf_percent, stcmvf_premium, vix, stcmvf_verb, abs(stcmvf_premium) / 30.0)
-    st_mt_message = settings.st_mt_message.format(mtcmvf_today, mtcmvf_percent, mtcmvf_premium, vix6m, mtcmvf_verb, abs(mtcmvf_premium) / 180.0)
+    st_mt_message = settings.st_mt_message.format(mtcmvf_today, mtcmvf_percent, mtcmvf_premium, vix, mtcmvf_verb, abs(mtcmvf_premium) / 150.0)
     logger.debug('st_st_message = {}'.format(st_st_message))
     logger.debug('st_mt_message = {}'.format(st_mt_message))
 

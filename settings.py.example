@@ -19,15 +19,15 @@ st_dry_run      = True
 st_access_token = 'my-StockTwits-access-token'
 
 # Short-term VX ETPs
-st_st_message    = """STCMVF settled @ {:.3f} ({:+.1%}), {:+.1%} over $VIX ({:.3f}). STCMVF is {} speculators {:.2%} per day.
+st_st_message    = """STCMVF settled @ {:.3f} ({:+.1%}), {:+.1%} over VIX ({:.3f}). STCMVF is {} speculators {:.2%} per day.
 
-The short-term constant-maturity VIX futures (STCMVF) is a weighted average of the current front- and back-month VIX futures contracts. It serves as a benchmark for the short-term volatility ETPs (e.g., $VXX, VIXY, SVXY, $UVXY, TVIX) and compares to the S&P 500 30-day volatility index ($VIX), which is derived from $SPX options. The posted quote is derived from VIX futures daily settlement."""
+The short-term constant-maturity VIX futures (STCMVF) is a weighted average of the current front- and back-month VIX futures contracts, and it resets daily. STCMVF represents the market's 30-day estimate of the S&P 500 30-day volatility index ($VIX), derived from $SPX options. Short-term VIX ETPs (e.g., $VXX, VIXY, SVXY, $UVXY, TVIX) approximately track STCMVF while compounding daily returns from prior positions."""
 st_post_st_chart = True
 st_st_chart_file = 'st_chart.png'
 
 # Mid-term VX ETPs
-st_mt_message    = """MTCMVF settled @ {:.3f} ({:+.1%}), {:+.1%} over VIX6M ({:.3f}). MTCMVF is {} speculators {:.2%} per day.
+st_mt_message    = """MTCMVF settled @ {:.3f} ({:+.1%}), {:+.1%} over VIX ({:.3f}). MTCMVF is {} speculators {:.2%} per day.
 
-The mid-term constant-maturity VIX futures (MTCMVF) is a weighted average of the current 4th, 5th, 6th, and 7th month VIX futures contracts. It is a benchmark for the mid-term volatility ETPs (e.g., VXZ, VIXM, ZIV, VIIZ, TVIZ) and compares to the S&P 500 6-month volatility index (VIX6M), which is derived from $SPX options. The posted quote is derived from VIX futures daily settlement."""
+The mid-term constant-maturity VIX futures (MTCMVF) is a weighted average of the current 4th, 5th, 6th, and 7th month VIX futures contracts, and it resets daily. MTCMVF represents the market's 5-month estimate of the S&P 500 30-day volatility index ($VIX), derived from $SPX options. Mid-term VIX ETPs (e.g., $VXZ, VIXM, ZIV, VIIZ, TVIZ) approximately track MTCMVF while compounding daily returns from prior positions."""
 st_post_mt_chart = True
 st_mt_chart_file = 'mt_chart.png'
