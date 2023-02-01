@@ -84,7 +84,9 @@ def main():
     stcmvf_percent   = (stcmvf_today / stcmvf_yesterday) - 1.0
     vix              = vx_today['VIX']
     stcmvf_premium   = (stcmvf_today / vix) - 1.0
-    stcmvf_rate      = abs(stcmvf_premium) / 30.0
+    m1_vx            = vx_today['Month1 Settle']
+    m1_weight        = vx_today['ST Month1 Weight']
+    stcmvf_rate      = (stcmvf_premium / 30.0) if m1_weight >= 1.0 else abs((stcmvf_today / m1_vx) - 1.0) / (30.0 * (1.0 - m1_weight))
     stcmvf_verb      = 'charging' if stcmvf_premium > 0 else 'paying'
     mtcmvf_yesterday = vx_yesterday['MTCMVF']
     mtcmvf_today     = vx_today['MTCMVF']
