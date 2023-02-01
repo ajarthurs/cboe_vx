@@ -86,22 +86,22 @@ def main():
     stcmvf_premium   = (stcmvf_today / vix) - 1.0
     m1_vx            = vx_today['Month1 Settle']
     m1_weight        = vx_today['ST Month1 Weight']
-    stcmvf_rate      = (stcmvf_premium / 30.0) if m1_weight >= 1.0 else abs((stcmvf_today / m1_vx) - 1.0) / (30.0 * (1.0 - m1_weight))
-    stcmvf_verb      = 'charging' if ((stcmvf_today > vix and m1_weight >= 1.0) or (stcmvf_today > m1_vx and m1_weight < 1.0)) else 'paying'
+    stcmvf_rate      = (stcmvf_premium / 30.0) if m1_weight >= 1.0 else ((stcmvf_today / m1_vx) - 1.0) / (30.0 * (1.0 - m1_weight))
+    stcmvf_verb      = 'charging' if stcmvf_rate > 0.0 else 'paying'
     mtcmvf_yesterday = vx_yesterday['MTCMVF']
     mtcmvf_today     = vx_today['MTCMVF']
     mtcmvf_percent   = (mtcmvf_today / mtcmvf_yesterday) - 1.0
     m4_vx            = vx_today['Month4 Settle']
     m4_weight        = vx_today['MT Month4 Weight']
     mtcmvf_premium   = (mtcmvf_today / vix) - 1.0
-    mtcmvf_rate      = abs((mtcmvf_today / m4_vx) - 1.0) / (30.0 * (2.0 - m4_weight * 3.0))
-    mtcmvf_verb      = 'charging' if mtcmvf_today > m4_vx else 'paying'
+    mtcmvf_rate      = ((mtcmvf_today / m4_vx) - 1.0) / (30.0 * (2.0 - m4_weight * 3.0))
+    mtcmvf_verb      = 'charging' if mtcmvf_rate > 0.0 else 'paying'
     logger.debug('vx_yesterday =\n{}'.format(vx_yesterday))
     logger.debug('vx_today =\n{}'.format(vx_today))
 
     # Post to StockTwits.
-    st_st_message = settings.st_st_message.format(stcmvf_today, stcmvf_percent, stcmvf_premium, vix, stcmvf_verb, stcmvf_rate)
-    st_mt_message = settings.st_mt_message.format(mtcmvf_today, mtcmvf_percent, mtcmvf_premium, vix, mtcmvf_verb, mtcmvf_rate)
+    st_st_message = settings.st_st_message.format(stcmvf_today, stcmvf_percent, stcmvf_premium, vix, stcmvf_verb, abs(stcmvf_rate))
+    st_mt_message = settings.st_mt_message.format(mtcmvf_today, mtcmvf_percent, mtcmvf_premium, vix, mtcmvf_verb, abs(mtcmvf_rate))
     logger.debug('st_st_message = {}'.format(st_st_message))
     logger.debug('st_mt_message = {}'.format(st_mt_message))
 
