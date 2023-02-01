@@ -93,7 +93,7 @@ def main():
     m4_weight        = vx_today['MT Month4 Weight']
     mtcmvf_premium   = (mtcmvf_today / vix) - 1.0
     mtcmvf_rate      = abs((mtcmvf_today / m4_vx) - 1.0) / (30.0 * (2.0 - m4_weight * 3.0))
-    mtcmvf_verb      = 'charging' if mtcmvf_premium > 0 else 'paying'
+    mtcmvf_verb      = 'charging' if mtcmvf_today > m4_vx else 'paying'
     logger.debug('vx_yesterday =\n{}'.format(vx_yesterday))
     logger.debug('vx_today =\n{}'.format(vx_today))
 
