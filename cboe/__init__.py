@@ -31,6 +31,7 @@ now_tz      = now_utc.tz_convert('America/Chicago') # Needed to calculate today'
 now         = now_utc.astimezone('America/Chicago').replace(tzinfo=None) # Timezone-naive date and time in Chicago time (pd.Timestamp)
 today       = pd.to_datetime(now.date()) # Timezone-naive date in Chicago time (pd.Timestamp normalized)
 # Miscellaneous
+max_retries = 10 # Give up after `max_retries` failures to contact CBOE.
 timeout_sec = 10 # Timeout in seconds when contacting CBOE
 delay_sec   = 1 # Delay in seconds between requests to CBOE. Note that this value is factored out of timeout so that delay can be greater than the specified timeout. In other words, total timeout is the sum of `timeout_sec` and `delay_sec`.
 
@@ -262,6 +263,10 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
     -------
     pd.DataFrame
         VX contract.
+
+    Raises
+    ------
+    TimeoutError
     """
     code = month_code[monthyear.month]
     contract_name = '({}){:%m/%Y}'.format(code, monthyear)
@@ -294,8 +299,9 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
         else: # Fetch from CBOE's new site.
             url = '{}/VX/VX_{:%Y-%m-%d}.csv'.format(cboe_historical_base_url, vx_expdate)
         try_again = True
+        retry_attempt = max_retries
         vx_contract = None
-        while try_again:
+        while try_again and retry_attempt > 0:
             q = multiprocessing.Queue()
             p = multiprocessing.Process(
                 target=read_csv,
@@ -315,10 +321,14 @@ def fetch_vx_monthly_contract(monthyear, cache=True, force_update=False, cache_d
                 p.join()
                 logger.debug('Timed out. Retrying...')
             except:
-                logger.exception('Failed to download VX contract {} from {}'.format(contract_name, url))
+                logger.exception('Failed to download VX contract {} from {}.'.format(contract_name, url))
                 raise
             p.join()
-        logger.debug('Retrieved VX contract {} from {}'.format(contract_name, vx_contract))
+            retry_attempt -= 1
+        if try_again:
+            raise TimeoutError('Failed to retrieve contract {} from {}.'.format(contract_name, url))
+            return None
+        logger.debug('Retrieved VX contract {} from {}.'.format(contract_name, vx_contract))
         try:
             if monthyear < cboe_vx_new_start_date: # Must get older data from CBOE's old site.
                 # Parse dates (assuming MM/DD/YYYY format).
@@ -366,6 +376,10 @@ def fetch_vx_daily_settlement():
     pd.DataFrame
         Daily settlement values of monthly VX contracts.
 
+    Raises
+    ------
+    TimeoutError
+
     Examples
     --------
     >>> ds = cboe.fetch_vx_daily_settlement()
@@ -394,7 +408,8 @@ def fetch_vx_daily_settlement():
     html_url = cboe_current_base_url
     all_eod_values = None
     try_again = True
-    while try_again:
+    retry_attempt = max_retries
+    while try_again and retry_attempt > 0:
         q = multiprocessing.Queue()
         p = multiprocessing.Process(
             target=read_csv,
@@ -416,6 +431,10 @@ def fetch_vx_daily_settlement():
             logger.exception('Failed to download daily settlement values from CBOE.\ncsv_url = {}\nhtml_url = {}'.format(csv_url, html_url))
             raise
         p.join()
+        retry_attempt -= 1
+    if try_again:
+        raise TimeoutError('Failed to retrieve data from CSV at {}.'.format(csv_url))
+        return None
     logger.debug('Fetched data from CSV at {}.'.format(csv_url))
 
     logger.debug('all_eod_values =\n' + str(all_eod_values))
@@ -746,14 +765,19 @@ def fetch_index(index):
     -------
     pd.DataFrame
         Index data.
+
+    Raises
+    ------
+    TimeoutError
     """
     import urllib.request
     from bs4 import BeautifulSoup
     url = '{}/{}'.format(cboe_historical_index_base_url, cboe_index[index])
     logger.debug('Fetching historical data from {}'.format(url))
-    try_again = True
     index_df = None
-    while try_again:
+    try_again = True
+    retry_attempt = max_retries
+    while try_again and retry_attempt > 0:
         q = multiprocessing.Queue()
         p = multiprocessing.Process(
             target=read_csv,
@@ -776,6 +800,10 @@ def fetch_index(index):
             logger.exception('Failed to download {} data.'.format(index))
             raise
         p.join()
+        retry_attempt -= 1
+    if try_again:
+        raise TimeoutError('Failed to retrieve index {} from {}.'.format(index, url))
+        return None
     logger.debug('index_df = \n{}'.format(index_df))
     stoday = '{:%m/%d/%Y}'.format(today)
     if(stoday not in index_df['Date'].values):

@@ -355,6 +355,10 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
 
     dry_run : bool
         Do not actually post message.
+
+    Raises
+    ------
+    TimeoutError
     """
     total_count = len(message)
     payload = {'access_token':access_token, 'body':message}
@@ -374,7 +378,8 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
         logger.debug('Dry-run is enabled so will not post.')
         return
     posted = False
-    while not posted:
+    retry_attempt = 3
+    while not posted and retry_attempt > 0:
         try:
             # Post message.
             r = requests.post('https://api.stocktwits.com/api/2/messages/create.json', data=payload,
@@ -391,8 +396,11 @@ def post_to_stocktwits(access_token, message, link_preamble=' ', link=None, atta
         except:
             logger.exception('Failed to post to StockTwits.')
             time.sleep(1)
-
-    logger.info('Posted message: ' + message)
+        retry_attempt -= 1
+    if not posted:
+        raise TimeoutError('Failed to post message: {}'.format(message))
+        return
+    logger.info('Posted message: {}'.format(message))
 #END: post_to_stocktwits
 
 if(__name__ == '__main__'):
